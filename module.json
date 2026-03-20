@@ -2,7 +2,7 @@
   "id": "pf2e-animation-framework",
   "title": "Stygia Animation Framework",
   "description": "Ein umfassendes Animations-Framework für PF2e in der Welt von Stygia.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
   "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.1.0/module.zip",
@@ -25,7 +25,7 @@
   },
   "scripts": ["main.js"],
   "compatibility": {
-    "minimum": "11",
-    "verified": "12"
+    "minimum": "12",
+    "verified": "13"
   }
 }
