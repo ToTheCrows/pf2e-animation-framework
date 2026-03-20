@@ -1,0 +1,21 @@
+{
+  "id": "pf2e-animation-framework",
+  "title": "PF2e Animation Framework",
+  "description": "Fokussiertes Animations-Framework für PF2e Traits und Hazards in Stygia.",
+  "version": "1.1.0",
+  "author": "ToTheCrows",
+  "esmodules": ["main.js"],
+  "relationships": {
+    "requires": [
+      { "id": "sequencer" },
+      { "id": "jb2a_patreon" }
+    ],
+    "systems": [
+      { "id": "pf2e" }
+    ]
+  },
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  }
+}
