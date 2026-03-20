@@ -1,12 +1,11 @@
 /**
- * PF2e Animation Framework by ToTheCrows
- * Version 1.1.1 - "The Sovereign Archive" (Consolidated Edition)
- * Master Grimoire: Fighter, Monk, Barbarian, Ranger, Rogue, Cleric,
- * Investigator, Gunslinger, Druid, Mage, Sorcerer & Spells Lvl 1-2.
+ * PF2e Animation Framework
+ * Version 1.1.2 - "The Renamed Sovereign"
+ * Master Grimoire: All Classes, Spells Lvl 1-2, Persistent Damage & V13-Safe Logic.
  */
 
 const ANIMATIONS = {
-    // --- PHYSIKALISCHE GRUNDLAGEN (Weiß/Gelb) ---
+    // --- PHYSIKALISCHE GRUNDLAGEN ---
     melee: {
         slashing: "jb2a.melee_generic.slashing",
         piercing: "jb2a.melee_generic.piercing",
@@ -37,6 +36,7 @@ const ANIMATIONS = {
         },
         ranger: {
             "Hunt Prey": "jb2a.magic_signs.circle.02.divination.intro.green",
+            "Hunter's Edge": "jb2a.magic_signs.circle.02.transmutation.intro.green",
             "Gravity Weapon": "jb2a.gravity_fissure.01.purple",
             "Hunted Shot": "jb2a.arrow.physical.white",
             "Twin Takedown": "jb2a.melee_generic.slashing",
@@ -45,12 +45,14 @@ const ANIMATIONS = {
         },
         rogue: {
             "Debilitating Strike": "jb2a.curse.02.dark_green",
-            "Mobility": "jb2a.misty_step.01.blue"
+            "Mobility": "jb2a.misty_step.01.blue",
+            "Surprise Attack": "jb2a.misty_step.01.blue"
         },
         cleric: {
             "Raise Shield": "jb2a.markers.shield.blue.02",
             "Emblazon Armament": "jb2a.magic_signs.circle.01.abjuration.intro.yellow",
-            "Sanctify Weapon": "jb2a.spiritual_weapon.sword.yellow"
+            "Sanctify Weapon": "jb2a.spiritual_weapon.sword.yellow",
+            "Divine Font": "jb2a.healing_generic.200px.blue"
         },
         investigator: {
             "Devise a Stratagem": "jb2a.magic_signs.circle.02.divination.intro.blue",
@@ -58,7 +60,8 @@ const ANIMATIONS = {
         },
         gunslinger: {
             "Firearm Strike": "jb2a.bullet.01.orange",
-            "Reload": "jb2a.fumes.steam.white"
+            "Reload": "jb2a.fumes.steam.white",
+            "Slinger's Reload": "jb2a.fumes.steam.white"
         },
         druid: {
             "Wild Shape": "jb2a.magic_signs.circle.01.transmutation.intro.green",
@@ -102,7 +105,7 @@ const ANIMATIONS = {
         }
     },
 
-    // --- STATUS-ANZEIGEN (V12/V13 Safe) ---
+    // --- STATUS-ANZEIGEN (Safe Access) ---
     conditions: {
         "Frightened": "jb2a.magic_signs.circle.02.necromancy.intro.dark_purple",
         "Sickened": "jb2a.magic_signs.circle.02.conjuration.intro.green",
@@ -115,7 +118,7 @@ const ANIMATIONS = {
 
 // --- INITIALISIERUNG ---
 Hooks.once('ready', () => {
-    console.log("PF2e Animation Framework | ToTheCrows 1.1.1: Master Grimoire online.");
+    console.log("PF2e Animation Framework | Version 1.1.2 geladen.");
     Sequencer.Preloader.preload([
         ANIMATIONS.melee.slashing,
         ANIMATIONS.spells.level1.Heal,
@@ -139,7 +142,6 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
 
-    // Kaskadensuche
     const findInMap = (key) => {
         if (!key) return null;
         for (let cat in ANIMATIONS.classes) if (ANIMATIONS.classes[cat][key]) return ANIMATIONS.classes[cat][key];
@@ -149,12 +151,10 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     let animKey = findInMap(itemName) || findInMap(itemSlug);
 
-    // Sneak Attack / Strategic Strike
     if (flavor.includes("sneak attack") || flavor.includes("strategic strike")) {
         if (targets.length > 0) new Sequence().effect().file(ANIMATIONS.melee["Sneak Attack"]).atLocation(targets[0]).scaleToObject(1.1).delay(250).play();
     }
 
-    // Fallbacks
     if (!animKey && (flavor.includes("firearm") || flavor.includes("schusswaffe"))) animKey = ANIMATIONS.classes.gunslinger["Firearm Strike"];
     if (!animKey) {
         let typeKey = item?.system?.damage?.damageType || item?.system?.damage?.array?.[0]?.type;
@@ -187,15 +187,12 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     seq.play();
 });
 
-// --- COMBAT TURN (Persistent Damage & Condition Pulse) ---
 Hooks.on("combatTurn", async (combat, updateData, updateOptions) => {
     const currentToken = canvas.tokens.get(combat.combatant.tokenId);
     const actor = currentToken?.actor;
     if (!actor) return;
 
     let seq = new Sequence();
-
-    // Persistent Damage
     const pTypes = ["fire", "acid", "bleed", "electricity", "poison"];
     for (let type of pTypes) {
         if (actor.items.some(i => i.slug?.includes(`persistent-${type}`))) {
@@ -203,7 +200,6 @@ Hooks.on("combatTurn", async (combat, updateData, updateOptions) => {
         }
     }
 
-    // Conditions (Safe itemTypes Access)
     const effects = [
         ...actor.itemTypes.condition.map(c => c.name),
         ...actor.itemTypes.effect.map(e => e.name)

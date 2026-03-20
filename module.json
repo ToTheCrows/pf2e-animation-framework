@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "A clean workaround for animations regarding pf2e completely free.",
-  "version": "1.1.1",
+  "description": "Ein umfassendes Animations-Framework für PF2e mit automatischer Klassen-, Zauber- und Statuserkennung.",
+  "version": "1.1.2",
   "library": "false",
-  "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.1.0/module.zip",
+  "manifest": "https://raw.githubusercontent.com/DEIN_NUTZERNAME/pf2e-animation-framework/main/module.json",
+  "download": "https://github.com/DEIN_NUTZERNAME/pf2e-animation-framework/releases/download/v1.1.2/module.zip",
   "authors": [
     {
       "name": "ToTheCrows"
@@ -25,7 +25,7 @@
   },
   "scripts": ["main.js"],
   "compatibility": {
-    "minimum": "12",
+    "minimum": "11",
     "verified": "13"
   }
 }
