@@ -1,0 +1,27 @@
+name: Create Foundry Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggert bei Tags wie v1.4.6
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Module Zip
+        run: zip -r ./module.zip module.json main.js # Zippt nur die Kern-Dateien
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: module.zip
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
