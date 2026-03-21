@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
@@ -15,4 +16,23 @@
   },
   "scripts": ["main.js"],
   "compatibility": { "minimum": "12", "verified": "13" }
+=======
+{
+  "id": "pf2e-animation-framework",
+  "title": "PF2e Animation Framework",
+  "description": "Version 1.4.2 - Specialist's Insight. Erweiterte Talente für Investigator, Gunslinger, Mage & Sorcerer.",
+  "version": "1.4.2",
+  "library": "false",
+  "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.4.2/module.zip",
+  "authors": [{ "name": "ToTheCrows" }],
+  "relationships": {
+    "requires": [
+      { "id": "sequencer", "type": "module" },
+      { "id": "jb2a_patreon", "type": "module" }
+    ]
+  },
+  "scripts": ["main.js"],
+  "compatibility": { "minimum": "11", "verified": "13" }
+>>>>>>> 1486d9ed2ece712a0324c196046b6cc6eadae20a
 }
