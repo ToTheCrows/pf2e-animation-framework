@@ -1,21 +1,22 @@
 /**
  * PF2e Animation Framework
- * Version 1.7.0 - "The Weapon Master's Arsenal"
- * Master Grimoire: Specific Weapon Slugs, Clean Logic, Multi-Target Support.
+ * Version 1.7.1 - "The Sharpened Edge"
+ * Master Grimoire: Fixed Melee Syntax, Force Barrage Target Fix.
  */
 
 const ANIMATIONS = {
-    // Nahkampf-Waffen (Slugs direkt aus dem System)
     melee: {
-        "longsword": "jb2a.melee_generic.slashing.one_handed",
-        "bastard-sword": "jb2a.melee_generic.slashing.two_handed",
-        "dagger": "jb2a.melee_generic.piercing.one_handed",
-        "rapier": "jb2a.melee_generic.piercing.one_handed",
-        "greataxe": "jb2a.melee_generic.slashing.two_handed",
-        "greatsword": "jb2a.melee_generic.slashing.two_handed",
-        "mace": "jb2a.melee_generic.bludgeoning.one_handed",
-        "warhammer": "jb2a.melee_generic.bludgeoning.one_handed",
+        "shortsword": "jb2a.melee_attack.01.shortsword.01.0",
+        "longsword": "jb2a.melee_attack.03.greatsword.01.0",
+        "bastard-sword": "jb2a.melee_attack.03.greatsword.01.3",
+        "dagger": "jb2a.dagger.melee.02.white",
+        "rapier": "jb2a.rapier.melee.01.white.2",
+        "greataxe": "jb2a.greataxe.melee.standard.white",
+        "greatsword": "jb2a.greatsword.melee.standard.white",
+        "mace": "jb2a.mace.melee.01.orange.0",
+        "warhammer": "jb2a.warhammer.melee.01.orange.4",
         "fist": "jb2a.melee_generic.creature_attack.fist.001.yellow.0",
+        "chakram": "jb2a.chakram.01.throw.03",
         "sneak-attack": "jb2a.impact.011.yellow"
     },
     classes: {
@@ -23,8 +24,7 @@ const ANIMATIONS = {
         monk: { "flurry-of-blows": "jb2a.melee_generic.creature_attack.fist.001.yellow.0", "ki-strike": "jb2a.impact.001.blue" },
         barbarian: { "rage": "jb2a.ground_cracks.02.orange", "sudden-charge": "jb2a.impact.01.yellow" },
         ranger: { "hunt-prey": "jb2a.magic_signs.circle.02.divination.intro.green" },
-        cleric: { "raise-a-shield": "jb2a.markers.shield.blue.02", "divine-font": "jb2a.healing_generic.burst.yellowwhite" },
-        mage: { "arcane-cascade": "jb2a.antilife_shell.blue_with_circle" }
+        cleric: { "raise-a-shield": "jb2a.markers.shield.blue.02", "divine-font": "jb2a.healing_generic.burst.yellowwhite" }
     },
     spells: {
         level1: { "force-barrage": "jb2a.magic_missile.purple", "magic-missile": "jb2a.magic_missile.purple", "heal": "jb2a.healing_generic.burst.bluewhite", "shield": "jb2a.markers.shield.blue.02" },
@@ -36,8 +36,8 @@ const ANIMATIONS = {
 
 let ANIM_INDEX = {};
 const SELF_EFFECTS = ["shield", "raise-a-shield", "bless", "bane", "rage", "hunt-prey", "wild-shape", "haste"];
-const PROJECTILES = ["force-barrage", "magic-missile", "fireball", "lightning-bolt", "searing-light", "firearm-strike"];
-const BURSTS = ["heal", "healing", "shatter", "divine-font", "bless", "bane"];
+const PROJECTILES = ["force-barrage", "magic-missile", "fireball", "lightning-bolt", "searing-light", "firearm-strike", "chakram"];
+const BURSTS = ["heal", "healing", "shatter", "divine-font"];
 
 Hooks.once('ready', () => {
     Object.values(ANIMATIONS).forEach(category => {
@@ -46,7 +46,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log("PF2e Animation Framework | 1.7.0: Arsenal indiziert.");
+    console.log("PF2e Animation Framework | 1.7.1: Ready.");
 });
 
 const findInIndex = (key) => {
@@ -71,14 +71,14 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const isDamage = (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isKnownProj;
     if (isDamage) return;
 
-    // Rein slug-basierte Suche (item.name als letzter Fallback)
     let animKey = findInIndex(itemSlug) || findInIndex(item.name);
-
     if (!animKey) return;
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
-    const isSelf = SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell");
+
+    // Fix: Projektile sind niemals "isSelf"
+    const isSelf = !isKnownProj && (SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell"));
     const isBurst = BURSTS.some(b => itemSlug.includes(b));
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
@@ -91,7 +91,6 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
         } else if (isSelf || isBurst) {
             effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
         } else {
-            // Nahkampf-Wucht (2.2 bei Crits, 1.6 normal)
             effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
         }
     });
