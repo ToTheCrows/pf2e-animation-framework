@@ -1,11 +1,10 @@
 /**
  * PF2e Animation Framework
- * Version 1.4.8 - "The Surgical Strike"
- * Master Grimoire: Airtight Damage-Filter & Heavy Impact Scaling.
+ * Version 1.5.0 - "The Grand Index"
+ * Master Grimoire: Performance Indexing, Surgical Strike Filter, Heavy Impact.
  */
 
 const ANIMATIONS = {
-    // --- PHYSIKALISCHE GRUNDLAGEN ---
     melee: {
         slashing: "jb2a.melee_generic.slashing",
         piercing: "jb2a.melee_generic.piercing",
@@ -14,7 +13,6 @@ const ANIMATIONS = {
         "Strategic Strike": "jb2a.magic_signs.circle.01.conjuration"
     },
 
-    // --- KLASSENSPEZIFISCHE MANÖVER ---
     classes: {
         fighter: {
             "Power Attack": "jb2a.impact.010.orange", "Shield Bash": "jb2a.impact.007.white",
@@ -103,35 +101,41 @@ const ANIMATIONS = {
         }
     },
 
-    persistent: {
-        fire: "jb2a.fire_bolt.orange", acid: "jb2a.liquid.splash.green", bleed: "jb2a.impact.01.red",
-        electricity: "jb2a.lightning_bolt.01.blue", poison: "jb2a.fumes.steam.white"
-    },
-
-    conditions: {
-        "Frightened": "jb2a.magic_signs.circle.02.necromancy.intro.dark_purple",
-        "Sickened": "jb2a.magic_signs.circle.02.conjuration.intro.green",
-        "Prone": "jb2a.impact.01.white", "Unconscious": "jb2a.sleep.01.blue",
-        "Dying": "jb2a.curse.01.dark_purple", "Hunt Prey": "jb2a.magic_signs.circle.02.divination.intro.green",
-        "Rage": "jb2a.magic_signs.circle.02.enchantment.intro.red", buff_pulse: "jb2a.magic_signs.circle.02.abjuration.intro.blue"
-    }
+    persistent: { fire: "jb2a.fire_bolt.orange", acid: "jb2a.liquid.splash.green", bleed: "jb2a.impact.01.red", electricity: "jb2a.lightning_bolt.01.blue", poison: "jb2a.fumes.steam.white" },
+    conditions: { "Frightened": "jb2a.magic_signs.circle.02.necromancy.intro.dark_purple", "Sickened": "jb2a.magic_signs.circle.02.conjuration.intro.green", "Prone": "jb2a.impact.01.white", "Unconscious": "jb2a.sleep.01.blue", "Dying": "jb2a.curse.01.dark_purple", "Hunt Prey": "jb2a.magic_signs.circle.02.divination.intro.green", "Rage": "jb2a.magic_signs.circle.02.enchantment.intro.red", buff_pulse: "jb2a.magic_signs.circle.02.abjuration.intro.blue" }
 };
 
+let ANIM_INDEX = {}; // Der Index der Macht
+
 Hooks.once('ready', () => {
-    console.log("PF2e Animation Framework | 1.4.8: Master Grimoire online (Surgical Strike).");
+    // Grand Index Aufbau: Jede Animation wird einmalig indiziert
+    Object.values(ANIMATIONS).forEach(category => {
+        Object.entries(category).forEach(([key, value]) => {
+            if (typeof value === 'string') ANIM_INDEX[key.toLowerCase()] = value;
+            else Object.entries(value).forEach(([subKey, subVal]) => {
+                ANIM_INDEX[subKey.toLowerCase()] = subVal;
+            });
+        });
+    });
+    console.log(`PF2e Animation Framework | v1.5.0: ${Object.keys(ANIM_INDEX).length} Runen im Index versiegelt.`);
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
 const PROJECTILES = ["Magic Missile", "Force Barrage", "Sudden Bolt", "Fireball", "Lightning Bolt", "Searing Light", "Firearm Strike", "Needle Darts", "Produce Flame", "Shocking Grasp", "Hand of the Apprentice"];
 
+const findInIndex = (key) => {
+    const s = key?.toLowerCase();
+    if (!s) return null;
+    if (ANIM_INDEX[s]) return ANIM_INDEX[s]; // Blitzschnell
+    const fuzzyKey = Object.keys(ANIM_INDEX).find(k => s.includes(k)); // Fallback
+    return fuzzyKey ? ANIM_INDEX[fuzzyKey] : null;
+};
+
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
-    // --- SURGICAL STRIKE FILTER (Härtung) ---
-    const isDamage = message.isDamageRoll ||
-        message.flags.pf2e?.context?.type?.includes("damage") ||
-        message.flavor?.toLowerCase().includes("damage");
-
+    // --- SURGICAL STRIKE FILTER ---
+    const isDamage = message.isDamageRoll || message.flags.pf2e?.context?.type?.includes("damage") || message.flavor?.toLowerCase().includes("damage");
     if (isDamage) return;
 
     const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
@@ -146,23 +150,16 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
 
-    const findInMap = (key) => {
-        if (!key) return null;
-        for (let cat in ANIMATIONS.classes) if (ANIMATIONS.classes[cat][key]) return ANIMATIONS.classes[cat][key];
-        for (let lvl in ANIMATIONS.spells) if (ANIMATIONS.spells[lvl][key]) return ANIMATIONS.spells[lvl][key];
-        return ANIMATIONS.melee[key];
-    };
-
-    let animKey = findInMap(itemName) || findInMap(itemSlug);
+    let animKey = findInIndex(itemName) || findInIndex(itemSlug) || (itemSlug.includes("shield") ? ANIM_INDEX["shield"] : null);
 
     if (flavor.includes("sneak attack") || flavor.includes("strategic strike")) {
-        if (targets.length > 0) new Sequence().effect().file(ANIMATIONS.melee["Sneak Attack"]).atLocation(targets[0]).scaleToObject(1.1).delay(250).play();
+        if (targets.length > 0) new Sequence().effect().file(ANIM_INDEX["sneak attack"]).atLocation(targets[0]).scaleToObject(1.1).delay(250).play();
     }
 
     if (!animKey) {
-        let typeKey = item.system?.damage?.damageType || item.system?.damage?.array?.[0]?.type;
+        let typeKey = (item.system?.damage?.damageType || item.system?.damage?.array?.[0]?.type)?.toLowerCase();
         if (!typeKey && (flavor.includes("slashing") || flavor.includes("axt"))) typeKey = "slashing";
-        animKey = ANIMATIONS.melee[typeKey];
+        animKey = ANIM_INDEX[typeKey];
         if (["slashing", "piercing", "bludgeoning"].includes(typeKey)) {
             const is2H = item.system?.usage?.value?.includes("two-hands") || item.system?.traits?.value?.includes("two-hand");
             animKey += is2H ? ".two_handed" : ".one_handed";
@@ -174,7 +171,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     let seq = new Sequence();
     if (isCrit && !SELF_EFFECTS.some(se => itemName.includes(se))) seq.canvasPan().shake({ duration: 500, intensity: 8 });
 
-    const isSelf = SELF_EFFECTS.some(se => itemName.includes(se) || itemSlug.includes(se)) || (targets.length === 0 && item.type === "spell");
+    const isSelf = SELF_EFFECTS.some(se => itemName.toLowerCase().includes(se.toLowerCase()) || itemSlug.toLowerCase().includes(se.toLowerCase())) || (targets.length === 0 && item.type === "spell");
     const finalTargets = isSelf ? [sourceToken] : targets;
 
     finalTargets.forEach(t => {
@@ -182,11 +179,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
         if (itemName.includes("Wild Shape") || itemSlug.includes("untamed-form")) effect.scaleToObject(2.0).playbackRate(0.8);
         else if (PROJECTILES.some(p => itemName.includes(p)) || animKey.includes("bullet")) effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
         else if (isSelf) effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
-        else {
-            // Impact-Scaling (aus 1.4.7): Wuchtigere Angriffe
-            const finalScale = isCrit ? 2.2 : 1.6;
-            effect.rotateTowards(sourceToken).scaleToObject(finalScale).playbackRate(1.1);
-        }
+        else effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
         if (["Flurry of Blows", "Twin Takedown", "Hunted Shot"].includes(itemName)) effect.repeats(2, 250);
     });
     seq.play();
@@ -205,7 +198,7 @@ Hooks.on("combatTurn", async (combat, updateData, updateOptions) => {
     }
     const effects = [...actor.itemTypes.condition.map(c => c.name), ...actor.itemTypes.effect.map(e => e.name)];
     effects.forEach((eff, i) => {
-        const anim = ANIMATIONS.conditions[eff] || findInMap(eff);
+        const anim = findInIndex(eff);
         if (anim) seq.effect().file(anim).atLocation(currentToken).scaleToObject(1.3).duration(3000).delay(i * 500).opacity(0.5).play();
     });
 });
