@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "Version 1.7.5 - The Kinetic Balance",
-  "version": "1.7.5",
+  "description": "Version 1.8.0 - The Iron Bridge",
+  "version": "1.8.0",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.7.5/module.zip",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.8.0/module.zip",
   "authors": [{ "name": "ToTheCrows" }],
   "relationships": {
     "requires": [

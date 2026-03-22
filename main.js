@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.7.5 - "The Kinetic Balance"
- * Master Grimoire: Fixed Melee Rotation, Weapon Slugs, Burst Logic.
+ * Version 1.8.0 - "The Iron Bridge"
+ * Master Grimoire: Stretch-to-Target Melee Logic, Slug Index, V13 Ready.
  */
 
 const ANIMATIONS = {
@@ -46,7 +46,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log("PF2e Animation Framework | 1.7.5: Kinetic Balance online.");
+    console.log("PF2e Animation Framework | 1.8.0: Iron Bridge online.");
 });
 
 const findInIndex = (key) => {
@@ -82,15 +82,17 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     let seq = new Sequence();
     finalTargets.forEach(t => {
-        let effect = seq.effect().file(animKey).atLocation(t);
+        let effect = seq.effect().file(animKey);
 
-        if (isKnownProj && t.id !== sourceToken.id) {
-            effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
-        } else if (isSelf || isBurst) {
-            effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
+        if (isSelf || isBurst) {
+            effect.atLocation(t).scaleToObject(1.5).fadeIn(400).fadeOut(400);
         } else {
-            // Fix: 180 Grad Rotation für korrekte Schlagrichtung
-            effect.rotateTowards(sourceToken).rotate(180).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
+            // Alle gezielten Angriffe (Nahkampf & Fernkampf) nutzen nun die Brücke
+            effect.atLocation(sourceToken)
+                .stretchTo(t)
+                .playbackRate(1.2);
+
+            if (isCrit) effect.scale(1.5); // Breitere Animation bei Crits
         }
     });
     seq.play();
