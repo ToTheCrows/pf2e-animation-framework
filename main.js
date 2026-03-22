@@ -1,11 +1,10 @@
 /**
  * PF2e Animation Framework
- * Version 1.8.5 - "The Sentinel's Vigil"
- * Master Grimoire: Full Spell Ranks 1-4, Ranged Weaponry, Iron Bridge Logic.
+ * Version 1.8.8 - "The Architect's Redemption"
+ * Master Grimoire: Sanitized JB2A Paths, Optimized Ranged & Aura Logic.
  */
 
 const ANIMATIONS = {
-    // Nahkampf-Waffen
     melee: {
         "shortsword": "jb2a.melee_attack.01.shortsword.01.0",
         "longsword": "jb2a.melee_attack.03.greatsword.01.0",
@@ -18,18 +17,17 @@ const ANIMATIONS = {
         "warhammer": "jb2a.warhammer.melee.01.orange.4",
         "fist": "jb2a.melee_generic.creature_attack.fist.001.yellow.0",
         "chakram": "jb2a.chakram.01.throw.03",
-        "sneak-attack": "jb2a.impact.011.yellow"
+        "sneak-attack": "jb2a.sneak_attack.dark_green"
     },
-    // Fernkampf-Waffen (Inspirierte Slugs aus PF2e Graphics/Macros)
     ranged: {
-        "longbow": "jb2a.arrow.physical.white",
-        "shortbow": "jb2a.arrow.physical.white",
+        "longbow": "jb2a.arrow.physical.white.01",
+        "shortbow": "jb2a.arrow.physical.white.02",
         "crossbow": "jb2a.bolt.physical.white",
-        "hand-crossbow": "jb2a.bolt.physical.white",
+        "hand-crossbow": "jb2a.bolt.physical.white02",
         "heavy-crossbow": "jb2a.bolt.physical.white",
         "pistol": "jb2a.bullet.01.orange",
-        "musket": "jb2a.bullet.01.orange",
-        "arquebus": "jb2a.bullet.01.orange"
+        "musket": "jb2a.bullet.03.orange",
+        "arquebus": "jb2a.bullet.02.orange"
     },
     classes: {
         fighter: { "power-attack": "jb2a.impact.010.orange", "shield-bash": "jb2a.impact.007.white", "reactive-strike": "jb2a.melee_generic.slashing.two_handed" },
@@ -38,53 +36,42 @@ const ANIMATIONS = {
     },
     spells: {
         level1: {
-            "force-barrage": "jb2a.magic_missile.purple", "magic-missile": "jb2a.magic_missile.purple", "kraftgeschoss": "jb2a.magic_missile.purple",
-            "heal": "jb2a.healing_generic.burst.bluewhite", "shield": "jb2a.markers.shield.blue.02", "schild": "jb2a.markers.shield.blue.02",
-            "acidic-burst": "jb2a.acid.splash.green", "admonishing-ray": "jb2a.ray.01.white",
-            "breathe-fire": "jb2a.burning_hands.01.orange", "briny-bolt": "jb2a.water_bolt.01.blue",
-            "fear": "jb2a.magic_signs.circle.02.necromancy.intro.red", "grim-tendrils": "jb2a.arms_of_hadar.01.purple",
-            "hydraulic-push": "jb2a.liquid.splash.blue", "pummeling-rubble": "jb2a.shatter.01.yellow",
-            "snowball": "jb2a.ice_bolt.white", "thunderstrike": "jb2a.lightning_bolt.01.blue",
-            "grease": "jb2a.liquid.splash.yellow", "sleep": "jb2a.sleep.01.blue",
-            "runic-weapon": "jb2a.magic_signs.circle.01.enchantment.intro.blue", "fleet-step": "jb2a.magic_signs.circle.02.transmutation.intro.yellow"
+            "force-barrage": "jb2a.magic_missile.purple", "magic-missile": "jb2a.magic_missile.purple",
+            "heal": "jb2a.healing_generic.burst.bluewhite", "shield": "jb2a.markers.shield.blue.02",
+            "acidic-burst": "jb2a.liquid.splash.bright_green", "admonishing-ray": "jb2a.scorching_ray.01.rainbow01",
+            "breathe-fire": "jb2a.burning_hands.01.orange", "briny-bolt": "jb2a.bolt.cold.blue",
+            "fear": "jb2a.condition.curse.01.006.green", "grim-tendrils": "jb2a.arms_of_hadar.dark_purple",
+            "hydraulic-push": "jb2a.liquid.splash.bright_blue", "pummeling-rubble": "jb2a.falling_rocks.side.1x1.grey.1",
+            "snowball": "jb2a.snowball_toss.white.01", "thunderstrike": "jb2a.lightning_strike.blue.5",
+            "grease": "jb2a.grease.dark_brown.loop", "sleep": "jb2a.sleep.target.dark_orangepurple",
+            "guidance": "jb2a.condition.boon.01.005.yellow", "bless": "jb2a.condition.boon.01.002.yellow", "bane": "jb2a.condition.curse.01.001.purple",
+            "ray-of-enfeeblement": "jb2a.condition.curse.01.021.red", "runic-weapon": "jb2a.condition.boon.01.010.blue"
         },
         level2: {
-            "flaming-sphere": "jb2a.flaming_sphere.01.orange", "shatter": "jb2a.shatter.01.yellow",
-            "acid-grip": "jb2a.liquid.splash.green", "animated-assault": "jb2a.shatter.01.yellow",
-            "blazing-bolt": "jb2a.fire_bolt.orange", "blur": "jb2a.invisibility.01.white",
-            "boneshaker": "jb2a.impact.003.purple", "enlarge": "jb2a.magic_signs.circle.02.transmutation.intro.yellow",
-            "ignite-fireworks": "jb2a.fireworks.01.red", "invisibility": "jb2a.invisibility.01.blue",
-            "mirror-image": "jb2a.mirror_image.01.blue", "mist": "jb2a.fog_cloud.01.white",
-            "noise-blast": "jb2a.shatter.01.white", "sudden-bolt": "jb2a.lightning_bolt.01.blue",
-            "vomit-swarm": "jb2a.swarm.01.insects.brown", "web": "jb2a.web.01",
-            "darkness": "jb2a.darkness.01", "dispel-magic": "jb2a.magic_signs.circle.02.abjuration.intro.red"
+            "flaming-sphere": "jb2a.flaming_sphere.200px.orange.02", "shatter": "jb2a.shatter.dark_red",
+            "acid-grip": "jb2a.liquid.splash02.green", "animated-assault": "jb2a.shatter.purple",
+            "blazing-bolt": "jb2a.fire_bolt.orange", "blur": "jb2a.ambient_fog.001.complete.small.blueteal",
+            "boneshaker": "jb2a.impact.002.dark_purple", "enlarge": "jb2a.magic_signs.circle.02.transmutation.intro.yellow",
+            "ignite-fireworks": "jb2a.firework.01.orangeyellow.03", "invisibility": "jb2a.fog_cloud.02.white"
         },
         level3: {
-            "fireball": "jb2a.fireball.01.orange", "lightning-bolt": "jb2a.lightning_bolt.01.blue",
-            "haste": "jb2a.magic_signs.circle.02.transmutation.intro.yellow", "slow": "jb2a.magic_signs.circle.02.transmutation.intro.blue",
-            "agonizing-despair": "jb2a.phantasmal_killer.01.purple", "blindness": "jb2a.dazzle.01.white",
-            "vampiric-feast": "jb2a.vampiric_touch.01.purple", "paralyze": "jb2a.hold_person.01.blue",
-            "stinking-cloud": "jb2a.fog_cloud.02.green", "gravity-well": "jb2a.implosion.01.blue",
-            "wall-of-thorns": "jb2a.wall_of_thorns.01", "wall-of-water": "jb2a.wall_of_water.01",
-            "crashing-wave": "jb2a.tidal_wave.01.blue", "hypnotize": "jb2a.hypnotic_pattern.01.rainbow",
-            "rouse-skeletons": "jb2a.arms_of_hadar.01.purple", "earthbind": "jb2a.entangle.01.yellow"
+            "fireball": "jb2a.fireball.01.orange", "lightning-bolt": "jb2a.lightning_bolt.wide.blue",
+            "haste": "jb2a.condition.boon.01.015.yellow", "slow": "jb2a.condition.curse.01.003.purple",
+            "heroism": "jb2a.condition.boon.01.004.blue", "crashing-wave": "jb2a.water_splash.circle.01.blue"
         },
         level4: {
-            "phantasmal-killer": "jb2a.phantasmal_killer.01.purple", "fire-shield": "jb2a.fire_shield.orange",
-            "resilient-sphere": "jb2a.magic_signs.circle.02.abjuration.intro.blue", "confusion": "jb2a.shatter.01.white",
-            "freedom-of-movement": "jb2a.magic_signs.circle.02.transmutation.intro.yellow", "vital-beacon": "jb2a.healing_generic.burst.yellowwhite",
-            "wall-of-fire": "jb2a.wall_of_fire.01.orange", "wall-of-ice": "jb2a.wall_of_ice.01.blue",
-            "vampiric-maiden": "jb2a.vampiric_touch.01.purple", "dimension-door": "jb2a.teleportation.01.blue",
-            "air-walk": "jb2a.magic_signs.circle.02.transmutation.intro.blue", "enervation": "jb2a.ray.01.purple"
+            "phantasmal-killer": "jb2a.ambient_fog.001.loop.large.purplered", "fire-shield": "jb2a.shield_themed.above.fire.03.orange",
+            "resilient-sphere": "jb2a.wall_of_force.sphere.blue", "wall-of-fire": "jb2a.wall_of_fire.100x100.yellow"
         }
     },
-    conditions: { "frightened": "jb2a.magic_signs.circle.02.necromancy.intro.dark_purple", "prone": "jb2a.impact.01.white" }
+    conditions: { "frightened": "jb2a.condition.curse.01.006.purple", "prone": "jb2a.condition.curse.01.013.red" }
 };
 
 let ANIM_INDEX = {};
-const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk"];
-const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet"];
+const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
+const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
 const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden"];
+const AURAS = ["bless", "bane", "courageous-anthem", "inspire-courage", "dread-aura"];
 
 Hooks.once('ready', () => {
     Object.values(ANIMATIONS).forEach(category => {
@@ -93,7 +80,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.8.5: ${Object.keys(ANIM_INDEX).length} Slugs im Index. Fernkampf-Arsenal geladen.`);
+    console.log(`PF2e Animation Framework | v1.8.8: ${Object.keys(ANIM_INDEX).length} Slugs im Index. Pfade verifiziert.`);
 });
 
 const findInIndex = (key) => {
@@ -125,19 +112,30 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");
     const isSelf = !isKnownProj && (SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell"));
     const isBurst = BURSTS.some(b => itemSlug.includes(b));
+    const isAura = AURAS.some(a => itemSlug.includes(a));
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
     let seq = new Sequence();
-    finalTargets.forEach(t => {
-        let effect = seq.effect().file(animKey);
 
-        if (isSelf || isBurst) {
-            effect.atLocation(t).scaleToObject(1.5).fadeIn(400).fadeOut(400);
-        } else {
-            // "Iron Bridge" Logik für Melee & Projectiles
-            effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
-            if (isCrit) effect.scale(1.5);
-        }
-    });
+    if (isAura) {
+        seq.effect()
+            .file(animKey)
+            .attachTo(sourceToken)
+            .scaleToObject(4)
+            .persist()
+            .fadeIn(1000)
+            .fadeOut(1000)
+            .name(`Aura-${sourceToken.id}-${itemSlug}`);
+    } else {
+        finalTargets.forEach(t => {
+            let effect = seq.effect().file(animKey);
+            if (isSelf || isBurst) {
+                effect.atLocation(t).scaleToObject(1.5).fadeIn(400).fadeOut(400);
+            } else {
+                effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
+                if (isCrit) effect.scale(1.5);
+            }
+        });
+    }
     seq.play();
 });
