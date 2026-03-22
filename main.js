@@ -1,8 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.4.6 - "The Automatic Ether"
- * Master Grimoire: Damage-Roll Filter, Deep Class Logic, V13 Ready.
- * Note: Cleaned after a merge conflict.
+ * Version 1.4.7 - "The Heavy Impact Update"
+ * Master Grimoire: Enhanced Scaling for Melee & Critical Hits.
  */
 
 const ANIMATIONS = {
@@ -119,7 +118,7 @@ const ANIMATIONS = {
 };
 
 Hooks.once('ready', () => {
-    console.log("PF2e Animation Framework | 1.4.6: Master Grimoire online (Tactical Precision).");
+    console.log("PF2e Animation Framework | 1.4.7: Master Grimoire online (Heavy Impact).");
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
@@ -128,7 +127,6 @@ const PROJECTILES = ["Magic Missile", "Force Barrage", "Sudden Bolt", "Fireball"
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
-    // --- TACTICAL PRECISION FILTER ---
     if (message.flags.pf2e?.context?.type === "damage-roll") return;
 
     const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
@@ -179,7 +177,11 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
         if (itemName.includes("Wild Shape") || itemSlug.includes("untamed-form")) effect.scaleToObject(2.0).playbackRate(0.8);
         else if (PROJECTILES.some(p => itemName.includes(p)) || animKey.includes("bullet")) effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
         else if (isSelf) effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
-        else effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 1.9 : 1.4).playbackRate(1.1);
+        else {
+            // Impact-Scaling: +20% auf Normal, massiver Boost auf Crits
+            const finalScale = isCrit ? 2.2 : 1.6;
+            effect.rotateTowards(sourceToken).scaleToObject(finalScale).playbackRate(1.1);
+        }
         if (["Flurry of Blows", "Twin Takedown", "Hunted Shot"].includes(itemName)) effect.repeats(2, 250);
     });
     seq.play();
