@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "Version 1.5.0 - The Grand Index. Maximale Performance durch indizierte Animationspfade und optimierte Suchlogik.",
-  "version": "1.5.0",
+  "description": "Version 1.5.1 - The Focused Missile",
+  "version": "1.5.1",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.5.0/module.zip",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.5.1/module.zip",
   "authors": [{ "name": "ToTheCrows" }],
   "relationships": {
     "requires": [
