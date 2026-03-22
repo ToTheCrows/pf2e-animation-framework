@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.5.1 - "The Focused Missile"
- * Master Grimoire: Regex Word Boundaries, Force Barrage Fix, 1.5.0 Performance.
+ * Version 1.5.2 - "The True Strike"
+ * Master Grimoire: Fixed Over-Aggressive Filter, Regex Word Boundaries, Grand Index.
  */
 
 const ANIMATIONS = {
@@ -46,7 +46,7 @@ Hooks.once('ready', () => {
             });
         });
     });
-    console.log(`PF2e Animation Framework | v1.5.1: Index stabilisiert.`);
+    console.log(`PF2e Animation Framework | v1.5.2: True Strike Ready.`);
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
@@ -56,9 +56,12 @@ const findInIndex = (key) => {
     const s = key?.toLowerCase();
     if (!s) return null;
     if (ANIM_INDEX[s]) return ANIM_INDEX[s];
-    // Finde längste Übereinstimmung als ganzes Wort
     const matches = Object.keys(ANIM_INDEX)
-        .filter(k => new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s))
+        .filter(k => {
+            try {
+                return new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
+            } catch (e) { return false; }
+        })
         .sort((a, b) => b.length - a.length);
     return matches.length > 0 ? ANIM_INDEX[matches[0]] : null;
 };
@@ -66,7 +69,8 @@ const findInIndex = (key) => {
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
-    const isDamage = message.isDamageRoll || message.flags.pf2e?.context?.type?.includes("damage") || message.flavor?.toLowerCase().includes("damage");
+    // --- TRUE STRIKE FILTER (Präzise) ---
+    const isDamage = message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll";
     if (isDamage) return;
 
     const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
@@ -89,7 +93,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     if (!animKey) {
         let typeKey = (item.system?.damage?.damageType || item.system?.damage?.array?.[0]?.type)?.toLowerCase();
-        animKey = ANIM_INDEX[typeKey];
+        animKey = findInIndex(typeKey);
         if (["slashing", "piercing", "bludgeoning"].includes(typeKey)) {
             const is2H = item.system?.usage?.value?.includes("two-hands") || item.system?.traits?.value?.includes("two-hand");
             animKey += is2H ? ".two_handed" : ".one_handed";
@@ -101,7 +105,6 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     let seq = new Sequence();
     if (isCrit && !SELF_EFFECTS.some(se => itemName.includes(se))) seq.canvasPan().shake({ duration: 500, intensity: 8 });
 
-    // Präzise Prüfung auf Selbsteffekte
     const isSelf = SELF_EFFECTS.some(se => new RegExp(`\\b${se}\\b`, 'i').test(itemName)) || (targets.length === 0 && item.type === "spell");
     const finalTargets = isSelf ? [sourceToken] : targets;
 
