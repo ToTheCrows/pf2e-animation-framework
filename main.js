@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.6.0 - "The Universal Essence"
- * Master Grimoire: Slug-based Detection (Language Independent), UUID Fallback.
+ * Version 1.6.1 - "The Purified Slug"
+ * Master Grimoire: Strict Slug Matching, Regex Word Boundaries, V13 Compatibility.
  */
 
 const ANIMATIONS = {
@@ -31,7 +31,6 @@ const ANIMATIONS = {
 let ANIM_INDEX = {};
 
 Hooks.once('ready', () => {
-    // Index Aufbau: Jetzt auf Basis von Slugs
     Object.values(ANIMATIONS).forEach(category => {
         Object.entries(category).forEach(([key, value]) => {
             if (typeof value === 'string') ANIM_INDEX[key] = value;
@@ -40,7 +39,7 @@ Hooks.once('ready', () => {
             });
         });
     });
-    console.log(`PF2e Animation Framework | v1.6.0: ${Object.keys(ANIM_INDEX).length} Slugs indiziert.`);
+    console.log(`PF2e Animation Framework | v1.6.1: ${Object.keys(ANIM_INDEX).length} Slugs gereinigt indiziert.`);
 });
 
 const SELF_EFFECTS = ["shield", "raise-a-shield", "bless", "bane", "rage", "hunt-prey", "untamed-form", "wild-shape", "mage-armor", "mirror-image", "barkskin", "invisibility", "haste", "heroism", "stoneskin", "fly", "translocate"];
@@ -49,34 +48,44 @@ const PROJECTILES = ["force-barrage", "magic-missile", "sudden-bolt", "fireball"
 const findInIndex = (key) => {
     if (!key) return null;
     const s = key.toLowerCase();
-    return ANIM_INDEX[s] || Object.keys(ANIM_INDEX).find(k => s.includes(k)) ? ANIM_INDEX[Object.keys(ANIM_INDEX).find(k => s.includes(k))] : null;
+
+    // 1. Exakter Match (Höchste Performance & Sicherheit)
+    if (ANIM_INDEX[s]) return ANIM_INDEX[s];
+
+    // 2. Wortgrenzen-Match (Verhindert Teilwort-Fehler wie Rage in Barrage)
+    const matches = Object.keys(ANIM_INDEX)
+        .filter(k => {
+            try { return new RegExp(`\\b${k}\\b`, 'i').test(s); } catch(e) { return false; }
+        })
+        .sort((a, b) => b.length - a.length);
+
+    return matches.length > 0 ? ANIM_INDEX[matches[0]] : null;
 };
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
+    // --- CLARITY FILTER ---
+    const isDamage = message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll";
     const messageType = message.flags.pf2e?.context?.type || "unknown";
+
     const sourceToken = canvas.tokens.get(message.speaker.token) || canvas.tokens.placeables.find(t => t.actor?.id === message.speaker.actor);
     if (!sourceToken) return;
 
-    // --- UNIVERSAL ITEM LOOKUP ---
     let item = message.item;
     if (!item && message.flags.pf2e?.origin?.uuid) item = await fromUuid(message.flags.pf2e.origin.uuid);
     if (!item) return;
 
     const itemSlug = item.slug || "";
-    const itemName = item.name.toLowerCase();
+    const itemName = item.name;
 
-    // --- CLARITY FILTER (SLUG BASED) ---
+    // Bekannte Projektile dürfen den Filter passieren
     const isKnownProj = PROJECTILES.some(p => itemSlug === p || itemSlug.includes(p));
-    const isSpellCast = messageType === "spell-cast" || isKnownProj;
-    const isDamage = (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isSpellCast;
-    if (isDamage) return;
+    if (isDamage && !isKnownProj) return;
 
-    // --- INDEX LOOKUP (SLUG FIRST) ---
     let animKey = findInIndex(itemSlug) || findInIndex(itemName);
 
-    // Debug Log
+    // Debug Log zur Kontrolle
     console.log(`PF2e Animation Framework | Slug: ${itemSlug} | Anim: ${animKey}`);
 
     if (!animKey) return;
@@ -85,7 +94,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
     let seq = new Sequence();
 
-    const isSelf = SELF_EFFECTS.some(se => itemSlug.includes(se)) || (Array.from(game.user.targets).length === 0 && item.type === "spell");
+    const isSelf = SELF_EFFECTS.some(se => itemSlug === se || itemSlug.startsWith(se + "-")) || (Array.from(game.user.targets).length === 0 && item.type === "spell");
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
     finalTargets.forEach(t => {
