@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.7.1 - "The Sharpened Edge"
- * Master Grimoire: Fixed Melee Syntax, Force Barrage Target Fix.
+ * Version 1.7.5 - "The Kinetic Balance"
+ * Master Grimoire: Fixed Melee Rotation, Weapon Slugs, Burst Logic.
  */
 
 const ANIMATIONS = {
@@ -46,7 +46,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log("PF2e Animation Framework | 1.7.1: Ready.");
+    console.log("PF2e Animation Framework | 1.7.5: Kinetic Balance online.");
 });
 
 const findInIndex = (key) => {
@@ -76,8 +76,6 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
-
-    // Fix: Projektile sind niemals "isSelf"
     const isSelf = !isKnownProj && (SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell"));
     const isBurst = BURSTS.some(b => itemSlug.includes(b));
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
@@ -91,7 +89,8 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
         } else if (isSelf || isBurst) {
             effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
         } else {
-            effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
+            // Fix: 180 Grad Rotation für korrekte Schlagrichtung
+            effect.rotateTowards(sourceToken).rotate(180).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
         }
     });
     seq.play();
