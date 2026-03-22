@@ -1,17 +1,11 @@
 /**
  * PF2e Animation Framework
- * Version 1.5.2 - "The True Strike"
- * Master Grimoire: Fixed Over-Aggressive Filter, Regex Word Boundaries, Grand Index.
+ * Version 1.5.3 - "The Arcane Clarity"
+ * Master Grimoire: Fixed Force Barrage, Improved Projectile Logic, Spell-Cast Filter Bypass.
  */
 
 const ANIMATIONS = {
-    melee: {
-        slashing: "jb2a.melee_generic.slashing",
-        piercing: "jb2a.melee_generic.piercing",
-        bludgeoning: "jb2a.melee_generic.bludgeoning",
-        "Sneak Attack": "jb2a.impact.011.yellow",
-        "Strategic Strike": "jb2a.magic_signs.circle.01.conjuration"
-    },
+    melee: { slashing: "jb2a.melee_generic.slashing", piercing: "jb2a.melee_generic.piercing", bludgeoning: "jb2a.melee_generic.bludgeoning", "Sneak Attack": "jb2a.impact.011.yellow", "Strategic Strike": "jb2a.magic_signs.circle.01.conjuration" },
     classes: {
         fighter: { "Power Attack": "jb2a.impact.010.orange", "Shield Bash": "jb2a.impact.007.white", "Reactive Strike": "jb2a.melee_generic.slashing.two_handed", "Knockdown": "jb2a.impact.002.yellow", "Vicious Swing": "jb2a.melee_generic.slash.02.001.orange.0", "Combat Grab": "jb2a.impact.008.orange" },
         monk: { "Flurry of Blows": "jb2a.melee_generic.creature_attack.fist.001.yellow.0", "Ki Strike": "jb2a.impact.001.blue", "Stunning Fist": "jb2a.unarmed_strike.magical.02.blue", "Mountain Stance": "jb2a.magic_signs.circle.02.transmutation.complete.yellow", "Crane Stance": "jb2a.magic_signs.circle.02.divination.complete.dark_yellow", "Ki Blast": "jb2a.shatter.blue", "Whirling Throw": "jb2a.whirlwind.blue" },
@@ -46,7 +40,7 @@ Hooks.once('ready', () => {
             });
         });
     });
-    console.log(`PF2e Animation Framework | v1.5.2: True Strike Ready.`);
+    console.log(`PF2e Animation Framework | v1.5.3: Arcane Clarity online.`);
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
@@ -58,9 +52,7 @@ const findInIndex = (key) => {
     if (ANIM_INDEX[s]) return ANIM_INDEX[s];
     const matches = Object.keys(ANIM_INDEX)
         .filter(k => {
-            try {
-                return new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s);
-            } catch (e) { return false; }
+            try { return new RegExp(`\\b${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(s); } catch (e) { return false; }
         })
         .sort((a, b) => b.length - a.length);
     return matches.length > 0 ? ANIM_INDEX[matches[0]] : null;
@@ -69,8 +61,9 @@ const findInIndex = (key) => {
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
-    // --- TRUE STRIKE FILTER (Präzise) ---
-    const isDamage = message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll";
+    // --- CLARITY FILTER ---
+    const isSpellCast = message.flags.pf2e?.context?.type === "spell-cast";
+    const isDamage = (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isSpellCast;
     if (isDamage) return;
 
     const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
@@ -110,10 +103,17 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     finalTargets.forEach(t => {
         let effect = seq.effect().file(animKey).atLocation(t);
-        if (itemName.includes("Wild Shape") || itemSlug.includes("untamed-form")) effect.scaleToObject(2.0).playbackRate(0.8);
-        else if (PROJECTILES.some(p => new RegExp(`\\b${p}\\b`, 'i').test(itemName)) || animKey.includes("bullet")) effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
-        else if (isSelf) effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
-        else effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
+        const isProj = PROJECTILES.some(p => new RegExp(`\\b${p}\\b`, 'i').test(itemName)) || animKey.includes("bullet");
+
+        if (itemName.includes("Wild Shape") || itemSlug.includes("untamed-form")) {
+            effect.scaleToObject(2.0).playbackRate(0.8);
+        } else if (isProj && t.id !== sourceToken.id) {
+            effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
+        } else if (isSelf) {
+            effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
+        } else {
+            effect.rotateTowards(sourceToken).scaleToObject(isCrit ? 2.2 : 1.6).playbackRate(1.1);
+        }
         if (["Flurry of Blows", "Twin Takedown", "Hunted Shot"].includes(itemName)) effect.repeats(2, 250);
     });
     seq.play();
