@@ -1,6 +1,6 @@
 /**
  * PF2e Animation Framework
- * Version 1.5.2 - "The True Strike"
+ * Version 1.5.3 - "The True Strike"
  * Master Grimoire: Fixed Over-Aggressive Filter, Regex Word Boundaries, Grand Index.
  */
 
