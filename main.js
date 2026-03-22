@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.4.7 - "The Heavy Impact Update"
- * Master Grimoire: Enhanced Scaling for Melee & Critical Hits.
+ * Version 1.4.8 - "The Surgical Strike"
+ * Master Grimoire: Airtight Damage-Filter & Heavy Impact Scaling.
  */
 
 const ANIMATIONS = {
@@ -118,7 +118,7 @@ const ANIMATIONS = {
 };
 
 Hooks.once('ready', () => {
-    console.log("PF2e Animation Framework | 1.4.7: Master Grimoire online (Heavy Impact).");
+    console.log("PF2e Animation Framework | 1.4.8: Master Grimoire online (Surgical Strike).");
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
@@ -127,7 +127,12 @@ const PROJECTILES = ["Magic Missile", "Force Barrage", "Sudden Bolt", "Fireball"
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
-    if (message.flags.pf2e?.context?.type === "damage-roll") return;
+    // --- SURGICAL STRIKE FILTER (Härtung) ---
+    const isDamage = message.isDamageRoll ||
+        message.flags.pf2e?.context?.type?.includes("damage") ||
+        message.flavor?.toLowerCase().includes("damage");
+
+    if (isDamage) return;
 
     const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
     if (!item) return;
@@ -178,7 +183,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
         else if (PROJECTILES.some(p => itemName.includes(p)) || animKey.includes("bullet")) effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
         else if (isSelf) effect.scaleToObject(1.5).fadeIn(400).fadeOut(400);
         else {
-            // Impact-Scaling: +20% auf Normal, massiver Boost auf Crits
+            // Impact-Scaling (aus 1.4.7): Wuchtigere Angriffe
             const finalScale = isCrit ? 2.2 : 1.6;
             effect.rotateTowards(sourceToken).scaleToObject(finalScale).playbackRate(1.1);
         }
