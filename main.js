@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.5.3 - "The Arcane Clarity"
- * Master Grimoire: Fixed Force Barrage, Improved Projectile Logic, Spell-Cast Filter Bypass.
+ * Version 1.5.4 - "The Ethereal Sight"
+ * Master Grimoire: Diagnostic Logs, Deep Item-Lookup, Force Barrage Härtung.
  */
 
 const ANIMATIONS = {
@@ -40,7 +40,7 @@ Hooks.once('ready', () => {
             });
         });
     });
-    console.log(`PF2e Animation Framework | v1.5.3: Arcane Clarity online.`);
+    console.log(`PF2e Animation Framework | v1.5.4: Diagnostic Runes active.`);
 });
 
 const SELF_EFFECTS = ["Shield", "Raise Shield", "Bless", "Bane", "Rage", "Hunt Prey", "Wild Shape", "Untamed Form", "Mage Armor", "Mirror Image", "Barkskin", "Invisibility", "Haste", "Heroism", "Stoneskin", "Fly", "Dimension Door", "Translocate", "Drain Bond", "Arcane Cascade", "Ancestral Memories"];
@@ -61,26 +61,37 @@ const findInIndex = (key) => {
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
 
+    // --- DIAGNOSTIK ---
+    const flavor = (message.flavor || "").toLowerCase();
+    const messageType = message.flags.pf2e?.context?.type || "unknown";
+
     // --- CLARITY FILTER ---
-    const isSpellCast = message.flags.pf2e?.context?.type === "spell-cast";
+    const isSpellCast = messageType === "spell-cast" || flavor.includes("force barrage") || flavor.includes("magic missile");
     const isDamage = (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isSpellCast;
+
     if (isDamage) return;
 
-    const item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
-    if (!item) return;
-
+    // --- DEEP ITEM LOOKUP ---
     const sourceToken = canvas.tokens.get(message.speaker.token) || canvas.tokens.placeables.find(t => t.actor?.id === message.speaker.actor);
-    const targets = Array.from(game.user.targets);
     if (!sourceToken) return;
+
+    let item = message.item;
+    if (!item && message.flags.pf2e?.origin?.uuid) item = await fromUuid(message.flags.pf2e.origin.uuid);
+    if (!item && message.flags.pf2e?.casting?.id) item = sourceToken.actor?.items.get(message.flags.pf2e.casting.id);
+
+    if (!item) return;
 
     const itemName = item.name;
     const itemSlug = item.slug || "";
-    const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical success") || flavor.includes("kritischer erfolg");
 
     let animKey = findInIndex(itemName) || findInIndex(itemSlug) || (itemSlug.includes("shield") ? ANIM_INDEX["shield"] : null);
 
+    // --- DEBUG LOG ---
+    console.log(`PF2e Animation Framework | Item: ${itemName} | Type: ${messageType} | Anim: ${animKey}`);
+
     if (flavor.includes("sneak attack") || flavor.includes("strategic strike")) {
+        const targets = Array.from(game.user.targets);
         if (targets.length > 0) new Sequence().effect().file(ANIM_INDEX["sneak attack"]).atLocation(targets[0]).scaleToObject(1.1).delay(250).play();
     }
 
@@ -98,8 +109,8 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     let seq = new Sequence();
     if (isCrit && !SELF_EFFECTS.some(se => itemName.includes(se))) seq.canvasPan().shake({ duration: 500, intensity: 8 });
 
-    const isSelf = SELF_EFFECTS.some(se => new RegExp(`\\b${se}\\b`, 'i').test(itemName)) || (targets.length === 0 && item.type === "spell");
-    const finalTargets = isSelf ? [sourceToken] : targets;
+    const isSelf = SELF_EFFECTS.some(se => new RegExp(`\\b${se}\\b`, 'i').test(itemName)) || (Array.from(game.user.targets).length === 0 && item.type === "spell");
+    const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
     finalTargets.forEach(t => {
         let effect = seq.effect().file(animKey).atLocation(t);
