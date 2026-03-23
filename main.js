@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.9.7 - "The Nullification Prism"
- * Master Grimoire: Strict Number Casting for Scale, Radius Sanitation.
+ * Version 2.0.0 - "The Celestial Orbit"
+ * Master Grimoire: Internal Registry, Orbital Offsets, Performance Throttling.
  */
 
 const ANIMATIONS = {
@@ -89,6 +89,8 @@ const ANIMATIONS = {
 };
 
 let ANIM_INDEX = {};
+const FRAMEWORK_REGISTRY = new Map(); // Interne Liste zur Performance-Steigerung
+
 const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
 const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
 const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden"];
@@ -101,21 +103,38 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.9.7: Index bereit.`);
+    console.log(`PF2e Animation Framework | v2.0.0: Registry & Orbit-System aktiv.`);
 });
 
-/**
- * Helfer: Spielt persistente Animationen ab
- */
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
+    Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
+
     const safeRadius = Number(radiusValue) || 5;
-    const scale = (safeRadius * 4) / 5;
+    let scale = (safeRadius * 4) / 5;
+    let offset = { x: 0, y: 0 };
+
+    // Orbit-Positionierung für Markers/Conditions
+    if (safeRadius <= 5) {
+        if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
+        const activeSlugs = FRAMEWORK_REGISTRY.get(token.id);
+
+        const index = activeSlugs.size;
+        const angle = index * 45;
+        const dist = 45;
+
+        offset.x = Math.cos(angle * Math.PI / 180) * dist;
+        offset.y = Math.sin(angle * Math.PI / 180) * dist;
+        scale = 0.5;
+        activeSlugs.add(itemSlug);
+    }
+
     const isCurrent = game.combat?.combatant?.tokenId === token.id;
 
     new Sequence()
         .effect()
         .file(animKey)
         .attachTo(token)
+        .offset(offset)
         .scaleToObject(scale)
         .persist()
         .origin("PF2e-Anim-Framework")
@@ -126,9 +145,6 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
         .play();
 }
 
-/**
- * Hook für manuelle Condition/Effekt-Anwendung
- */
 Hooks.on("createItem", (item, options, userId) => {
     if (game.user.id !== userId) return;
     const token = item.parent?.getActiveTokens()[0];
@@ -140,36 +156,42 @@ Hooks.on("createItem", (item, options, userId) => {
 
     let radius = 5;
     if (item.system.rules) {
-        const auraRule = item.system.rules.find(r => r.key === "Aura");
-        if (auraRule && auraRule.radius) radius = auraRule.radius;
-    } else if (item.system.area?.value) {
-        radius = item.system.area.value;
+        const auraRule = item.system.rules.find(r => r.key === "Aura" || (r.selector && r.selector.includes("aura")));
+        radius = auraRule?.radius || radius;
     }
+    radius = item.system.area?.value || radius;
 
     playPersistentAnimation(token, animKey, itemSlug, radius);
 });
 
-/**
- * Cleanup beim Löschen
- */
 Hooks.on("deleteItem", (item, options, userId) => {
     if (game.user.id !== userId) return;
-    const token = item.parent?.getActiveTokens()[0];
-    if (token) {
-        Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${item.slug}` });
-    }
+    const actor = item.parent;
+    const token = actor?.getActiveTokens()[0];
+    if (!token) return;
+
+    const itemSlug = item.slug || "";
+
+    setTimeout(() => {
+        const stillExists = actor.items.some(i => i.slug === itemSlug || i.name === item.name);
+        if (!stillExists) {
+            Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
+            FRAMEWORK_REGISTRY.get(token.id)?.delete(itemSlug);
+        }
+    }, 150);
 });
 
-/**
- * Turn-Manager
- */
 Hooks.on("updateCombat", (combat) => {
     const currentTokenId = combat.combatant?.tokenId;
     if (!currentTokenId) return;
 
-    Sequencer.EffectManager.getEffects({ origin: "PF2e-Anim-Framework" }).forEach(effect => {
-        const isCurrentTurn = effect.data.name.includes(currentTokenId);
-        effect.update({ alpha: isCurrentTurn ? 1.0 : 0.3 });
+    // Nur in unserer Registry suchen (Performance-Boost)
+    FRAMEWORK_REGISTRY.forEach((slugs, tokenId) => {
+        const isCurrent = tokenId === currentTokenId;
+        slugs.forEach(slug => {
+            Sequencer.EffectManager.getEffects({ name: `Persist-${tokenId}-${slug}` })
+                .forEach(e => e.update({ alpha: isCurrent ? 1.0 : 0.3 }));
+        });
     });
 });
 
@@ -183,7 +205,6 @@ const findInIndex = (key) => {
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
-
     const sourceToken = canvas.tokens.get(message.speaker.token) || canvas.tokens.placeables.find(t => t.actor?.id === message.speaker.actor);
     if (!sourceToken) return;
 
@@ -197,8 +218,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     let animKey = findInIndex(itemSlug) || findInIndex(item.name);
     if (!animKey) return;
 
-    const isPersistent = PERSISTENT_TAGS.some(tag => itemSlug.includes(tag));
-    if (isPersistent) return;
+    if (PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");
