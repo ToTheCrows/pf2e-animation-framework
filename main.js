@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 2.0.1 - "The Orbital Alignment"
- * Master Grimoire: V13 Stable Offsets, Internal Registry, Performance Throttling.
+ * Version 2.0.2 - "The Radiant Orbit"
+ * Master Grimoire: Enhanced Visibility, Orbital Offsets, V13 Namespacing.
  */
 
 const ANIMATIONS = {
@@ -103,7 +103,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.0.1: Orbital Alignment aktiv.`);
+    console.log(`PF2e Animation Framework | v2.0.2: Radiant Orbit aktiv.`);
 });
 
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
@@ -123,7 +123,7 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
 
         offset.x = Math.cos(angle * Math.PI / 180) * dist;
         offset.y = Math.sin(angle * Math.PI / 180) * dist;
-        scale = 0.5;
+        scale = 0.7; // Radiant Orbit: Vergrößert
         activeSlugs.add(itemSlug);
     }
 
@@ -132,15 +132,15 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
     new Sequence()
         .effect()
         .file(animKey)
-        .atLocation(token, { offset: offset, local: true }) // V13 Fix
+        .atLocation(token, { offset: offset, local: true })
         .attachTo(token)
         .scaleToObject(scale)
         .persist()
         .origin("PF2e-Anim-Framework")
         .name(`Persist-${token.id}-${itemSlug}`)
         .fadeIn(1000)
-        .opacity(isCurrent ? 1.0 : 0.3)
-        .loopProperty("sprite", "alpha", { from: 0.1, to: 0.4, duration: 3000, pingpong: true })
+        .opacity(isCurrent ? 1.0 : 0.4) // Passive Opacity erhöht
+        .loopProperty("sprite", "alpha", { from: 0.2, to: 0.5, duration: 3000, pingpong: true })
         .play();
 }
 
@@ -188,7 +188,7 @@ Hooks.on("updateCombat", (combat) => {
         const isCurrent = tokenId === currentTokenId;
         slugs.forEach(slug => {
             Sequencer.EffectManager.getEffects({ name: `Persist-${tokenId}-${slug}` })
-                .forEach(e => e.update({ alpha: isCurrent ? 1.0 : 0.3 }));
+                .forEach(e => e.update({ alpha: isCurrent ? 1.0 : 0.4 }));
         });
     });
 });
