@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.9.5 - "The Geometric Alignment"
- * Master Grimoire: Manual Condition Hooks, Corrected Persistence, V13 Ready.
+ * Version 1.9.6 - "The Absolute Calibration"
+ * Master Grimoire: Dynamic Radius Detection (Aura Rules), Updated Condition Slugs.
  */
 
 const ANIMATIONS = {
@@ -65,27 +65,25 @@ const ANIMATIONS = {
         }
     },
     conditions: {
-        "blinded": "jb2a.markers.blind.black.01", "broken": "jb2a.markers.hazard.red.01",
-        "clumsy": "jb2a.condition.curse.01.011.red", "concealed": "jb2a.markers.bubble.blue.01",
-        "confused": "jb2a.markers.confusion.purple.01", "controlled": "jb2a.markers.rune.purple.02",
-        "dazzled": "jb2a.markers.light.yellow.01", "deafened": "jb2a.markers.shield.white.01",
-        "doomed": "jb2a.condition.curse.01.025.red", "drained": "jb2a.markers.blood.red.01",
-        "dying": "jb2a.markers.heartbeat.red.01", "encumbered": "jb2a.markers.weight.grey.01",
-        "enfeebled": "jb2a.markers.fist.red.01", "fascinated": "jb2a.markers.eye.yellow.01",
-        "fatigued": "jb2a.condition.curse.01.014.blue", "off-guard": "jb2a.markers.hazard.red.02",
-        "flat-foot": "jb2a.markers.hazard.red.02", "fleeing": "jb2a.markers.run.purple.01",
-        "friendly": "jb2a.markers.heart.yellow.01", "frightened": "jb2a.condition.curse.01.006.purple",
-        "grabbed": "jb2a.markers.chain.standard.white.01", "helpful": "jb2a.markers.star.yellow.01",
-        "hidden": "jb2a.markers.bubble.blue.02", "hostile": "jb2a.markers.skull.red.01",
-        "immobilized": "jb2a.markers.chain.standard.white.02", "indifferent": "jb2a.markers.circle.01.white.01",
-        "invisible": "jb2a.markers.shield.blue.02", "observed": "jb2a.markers.eye.white.01",
-        "paralyzed": "jb2a.markers.lightning.blue.01", "persistent-damage": "jb2a.markers.hazard.red.01",
-        "petrified": "jb2a.markers.stone.grey.01", "prone": "jb2a.condition.curse.01.013.red",
-        "quickened": "jb2a.condition.boon.01.015.yellow", "restrained": "jb2a.markers.chain.standard.white.03",
-        "sickened": "jb2a.condition.curse.01.007.green", "slowed": "jb2a.condition.curse.01.003.purple",
-        "stunned": "jb2a.markers.stun.purple.02", "stupefied": "jb2a.markers.confusion.purple.02",
-        "unconscious": "jb2a.markers.sleep.blue.01", "undetected": "jb2a.markers.bubble.blue.03",
-        "unfriendly": "jb2a.markers.hazard.red.01", "unnoticed": "jb2a.markers.bubble.blue.01",
+        "blinded": "jb2a.condition.curse.01.002.purple", "broken": "jb2a.markers.runes.red.01",
+        "clumsy": "jb2a.condition.curse.01.008.purple", "concealed": "jb2a.markers.bubble.02.complete.blue.1",
+        "confused": "jb2a.markers.stun.purple.03", "controlled": "jb2a.markers.runes.dark_black.02",
+        "dazzled": "jb2a.markers.light.complete.green", "deafened": "jb2a.condition.curse.01.018.purple",
+        "doomed": "jb2a.condition.curse.01.024.red", "drained": "jb2a.markers.drop.red.03",
+        "dying": "jb2a.markers.heart.dark_red.02", "encumbered": "jb2a.markers.chain.standard.loop.02.grey",
+        "enfeebled": "jb2a.markers.chain.square.loop.01.purple", "fascinated": "jb2a.eyes.01.single.dark_yellow.0",
+        "fatigued": "jb2a.condition.curse.01.013.blue", "off-guard": "jb2a.icon.shield_cracked.dark_red",
+        "flat-foot": "jb2a.icon.shield_cracked.dark_red", "fleeing": "jb2a.condition.curse.01.006.green",
+        "frightened": "jb2a.condition.curse.01.006.purple", "grabbed": "jb2a.markers.chain.standard.loop.02.yellow",
+        "hidden": "jb2a.markers.bubble.intro.blue", "immobilized": "jb2a.markers.chain.standard.loop.02.yellow",
+        "invisible": "jb2a.markers.bubble.intro.blue", "observed": "jb2a.eyes.01.orangered.few.2",
+        "paralyzed": "jb2a.icon.stun.dark_teal", "persistent-damage": "jb2a.markers.drop.red.01",
+        "petrified": "jb2a.ioun_stones.02.white.regeneration", "prone": "jb2a.condition.curse.01.013.red",
+        "quickened": "jb2a.condition.boon.01.015.yellow", "restrained": "jb2a.markers.chain.standard.loop.02.red",
+        "sickened": "jb2a.condition.curse.01.017.green", "slowed": "jb2a.cast_generic.ice.01.blue.0",
+        "stunned": "jb2a.markers.stun.purple.02", "stupefied": "jb2a.markers.stun.purple.03",
+        "unconscious": "jb2a.sleep.target.pink", "undetected": "jb2a.markers.bubble.02.complete.grey.2",
+        "unfriendly": "jb2a.markers.hazard.red.01", "unnoticed": "jb2a.markers.bubble.02.complete.blue.1",
         "wounded": "jb2a.markers.blood.red.02"
     }
 };
@@ -103,7 +101,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.9.5: ${Object.keys(ANIM_INDEX).length} Slugs verifiziert.`);
+    console.log(`PF2e Animation Framework | v1.9.6: ${Object.keys(ANIM_INDEX).length} Slugs verifiziert.`);
 });
 
 /**
@@ -128,7 +126,7 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
 }
 
 /**
- * Hook für manuelle Condition/Effekt-Anwendung
+ * Hook für manuelle Condition/Effekt-Anwendung mit Radius-Erkennung
  */
 Hooks.on("createItem", (item, options, userId) => {
     if (game.user.id !== userId) return;
@@ -139,7 +137,16 @@ Hooks.on("createItem", (item, options, userId) => {
     const animKey = findInIndex(itemSlug);
     if (!animKey || !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
-    playPersistentAnimation(token, animKey, itemSlug, item.system.area?.value || 5);
+    // Radius-Erkennung: Bevorzugt Aura-Regeln, dann Area-Werte
+    let radius = 5;
+    if (item.system.rules) {
+        const auraRule = item.system.rules.find(r => r.key === "Aura");
+        if (auraRule) radius = auraRule.radius;
+    } else if (item.system.area?.value) {
+        radius = item.system.area.value;
+    }
+
+    playPersistentAnimation(token, animKey, itemSlug, radius);
 });
 
 /**
@@ -170,7 +177,8 @@ const findInIndex = (key) => {
     if (!key) return null;
     const s = key.toLowerCase();
     if (ANIM_INDEX[s]) return ANIM_INDEX[s];
-    return Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3) ? ANIM_INDEX[Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3)] : null;
+    const fuzzyKey = Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3);
+    return fuzzyKey ? ANIM_INDEX[fuzzyKey] : null;
 };
 
 Hooks.on("createChatMessage", async (message, options, userId) => {

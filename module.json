@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "Version 1.9.5 - The Geometric Alignment. Fix für manuelle Conditions und V13 Kompatibilität.",
-  "version": "1.9.5",
+  "description": "Version 1.9.6 - The Absolute Calibration. Dynamische Radien-Erkennung für Auren und korrigierte Condition-Pfade.",
+  "version": "1.9.6",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.9.5/module.zip",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v1.9.6/module.zip",
   "authors": [{ "name": "ToTheCrows" }],
   "relationships": {
     "requires": [
