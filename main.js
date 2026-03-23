@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 2.0.0 - "The Celestial Orbit"
- * Master Grimoire: Internal Registry, Orbital Offsets, Performance Throttling.
+ * Version 2.0.1 - "The Orbital Alignment"
+ * Master Grimoire: V13 Stable Offsets, Internal Registry, Performance Throttling.
  */
 
 const ANIMATIONS = {
@@ -88,8 +88,8 @@ const ANIMATIONS = {
     }
 };
 
+const FRAMEWORK_REGISTRY = new Map();
 let ANIM_INDEX = {};
-const FRAMEWORK_REGISTRY = new Map(); // Interne Liste zur Performance-Steigerung
 
 const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
 const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
@@ -103,7 +103,7 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.0.0: Registry & Orbit-System aktiv.`);
+    console.log(`PF2e Animation Framework | v2.0.1: Orbital Alignment aktiv.`);
 });
 
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
@@ -113,7 +113,6 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
     let scale = (safeRadius * 4) / 5;
     let offset = { x: 0, y: 0 };
 
-    // Orbit-Positionierung für Markers/Conditions
     if (safeRadius <= 5) {
         if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
         const activeSlugs = FRAMEWORK_REGISTRY.get(token.id);
@@ -133,8 +132,8 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
     new Sequence()
         .effect()
         .file(animKey)
+        .atLocation(token, { offset: offset, local: true }) // V13 Fix
         .attachTo(token)
-        .offset(offset)
         .scaleToObject(scale)
         .persist()
         .origin("PF2e-Anim-Framework")
@@ -185,7 +184,6 @@ Hooks.on("updateCombat", (combat) => {
     const currentTokenId = combat.combatant?.tokenId;
     if (!currentTokenId) return;
 
-    // Nur in unserer Registry suchen (Performance-Boost)
     FRAMEWORK_REGISTRY.forEach((slugs, tokenId) => {
         const isCurrent = tokenId === currentTokenId;
         slugs.forEach(slug => {
