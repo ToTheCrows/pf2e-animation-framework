@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.9.3 - "The Watcher's Pulse"
- * Master Grimoire: Turn-Based Opacity, Unified Persistence, Auto-Cleanup.
+ * Version 1.9.5 - "The Geometric Alignment"
+ * Master Grimoire: Manual Condition Hooks, Corrected Persistence, V13 Ready.
  */
 
 const ANIMATIONS = {
@@ -65,15 +65,28 @@ const ANIMATIONS = {
         }
     },
     conditions: {
-        "frightened": "jb2a.condition.curse.01.006.purple",
-        "prone": "jb2a.condition.curse.01.013.red",
-        "stunned": "jb2a.markers.stun.purple.02",
-        "blinded": "jb2a.markers.blind.black.01",
-        "confused": "jb2a.markers.confusion.purple.01",
-        "immobilized": "jb2a.markers.chain.standard.white.01",
-        "paralyzed": "jb2a.markers.lightning.blue.01",
-        "quickened": "jb2a.condition.boon.01.015.yellow",
-        "sickened": "jb2a.condition.curse.01.007.green"
+        "blinded": "jb2a.markers.blind.black.01", "broken": "jb2a.markers.hazard.red.01",
+        "clumsy": "jb2a.condition.curse.01.011.red", "concealed": "jb2a.markers.bubble.blue.01",
+        "confused": "jb2a.markers.confusion.purple.01", "controlled": "jb2a.markers.rune.purple.02",
+        "dazzled": "jb2a.markers.light.yellow.01", "deafened": "jb2a.markers.shield.white.01",
+        "doomed": "jb2a.condition.curse.01.025.red", "drained": "jb2a.markers.blood.red.01",
+        "dying": "jb2a.markers.heartbeat.red.01", "encumbered": "jb2a.markers.weight.grey.01",
+        "enfeebled": "jb2a.markers.fist.red.01", "fascinated": "jb2a.markers.eye.yellow.01",
+        "fatigued": "jb2a.condition.curse.01.014.blue", "off-guard": "jb2a.markers.hazard.red.02",
+        "flat-foot": "jb2a.markers.hazard.red.02", "fleeing": "jb2a.markers.run.purple.01",
+        "friendly": "jb2a.markers.heart.yellow.01", "frightened": "jb2a.condition.curse.01.006.purple",
+        "grabbed": "jb2a.markers.chain.standard.white.01", "helpful": "jb2a.markers.star.yellow.01",
+        "hidden": "jb2a.markers.bubble.blue.02", "hostile": "jb2a.markers.skull.red.01",
+        "immobilized": "jb2a.markers.chain.standard.white.02", "indifferent": "jb2a.markers.circle.01.white.01",
+        "invisible": "jb2a.markers.shield.blue.02", "observed": "jb2a.markers.eye.white.01",
+        "paralyzed": "jb2a.markers.lightning.blue.01", "persistent-damage": "jb2a.markers.hazard.red.01",
+        "petrified": "jb2a.markers.stone.grey.01", "prone": "jb2a.condition.curse.01.013.red",
+        "quickened": "jb2a.condition.boon.01.015.yellow", "restrained": "jb2a.markers.chain.standard.white.03",
+        "sickened": "jb2a.condition.curse.01.007.green", "slowed": "jb2a.condition.curse.01.003.purple",
+        "stunned": "jb2a.markers.stun.purple.02", "stupefied": "jb2a.markers.confusion.purple.02",
+        "unconscious": "jb2a.markers.sleep.blue.01", "undetected": "jb2a.markers.bubble.blue.03",
+        "unfriendly": "jb2a.markers.hazard.red.01", "unnoticed": "jb2a.markers.bubble.blue.01",
+        "wounded": "jb2a.markers.blood.red.02"
     }
 };
 
@@ -81,7 +94,7 @@ let ANIM_INDEX = {};
 const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
 const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
 const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden"];
-const PERSISTENT_TAGS = ["bless", "bane", "aura", "frightened", "prone", "stunned", "blinded", "confused", "immobilized", "paralyzed", "quickened", "sickened", "heroism"];
+const PERSISTENT_TAGS = ["bless", "bane", "aura", "frightened", "prone", "stunned", "blinded", "confused", "immobilized", "paralyzed", "quickened", "sickened", "heroism", "clumsy", "doomed", "drained", "dying", "enfeebled", "fleeing", "grabbed", "restrained", "slowed", "stupefied", "unconscious", "invisible", "hidden", "off-guard", "flat-foot"];
 
 Hooks.once('ready', () => {
     Object.values(ANIMATIONS).forEach(category => {
@@ -90,11 +103,58 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.9.3: ${Object.keys(ANIM_INDEX).length} Slugs im Index. Resonanz stabilisiert.`);
+    console.log(`PF2e Animation Framework | v1.9.5: ${Object.keys(ANIM_INDEX).length} Slugs verifiziert.`);
 });
 
 /**
- * Turn-Manager: Regelt die Sichtbarkeit von persistenten Effekten
+ * Helfer: Spielt persistente Animationen ab
+ */
+function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
+    const scale = (radiusValue * 4) / 5;
+    const isCurrent = game.combat?.combatant?.tokenId === token.id;
+
+    new Sequence()
+        .effect()
+        .file(animKey)
+        .attachTo(token)
+        .scaleToObject(scale)
+        .persist()
+        .origin("PF2e-Anim-Framework")
+        .name(`Persist-${token.id}-${itemSlug}`)
+        .fadeIn(1000)
+        .opacity(isCurrent ? 1.0 : 0.3)
+        .loopProperty("sprite", "alpha", { from: 0.1, to: 0.4, duration: 3000, pingpong: true })
+        .play();
+}
+
+/**
+ * Hook für manuelle Condition/Effekt-Anwendung
+ */
+Hooks.on("createItem", (item, options, userId) => {
+    if (game.user.id !== userId) return;
+    const token = item.parent?.getActiveTokens()[0];
+    if (!token) return;
+
+    const itemSlug = item.slug || "";
+    const animKey = findInIndex(itemSlug);
+    if (!animKey || !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
+
+    playPersistentAnimation(token, animKey, itemSlug, item.system.area?.value || 5);
+});
+
+/**
+ * Cleanup beim Löschen
+ */
+Hooks.on("deleteItem", (item, options, userId) => {
+    if (game.user.id !== userId) return;
+    const token = item.parent?.getActiveTokens()[0];
+    if (token) {
+        Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${item.slug}` });
+    }
+});
+
+/**
+ * Turn-Manager
  */
 Hooks.on("updateCombat", (combat) => {
     const currentTokenId = combat.combatant?.tokenId;
@@ -102,26 +162,15 @@ Hooks.on("updateCombat", (combat) => {
 
     Sequencer.EffectManager.getEffects({ origin: "PF2e-Anim-Framework" }).forEach(effect => {
         const isCurrentTurn = effect.data.name.includes(currentTokenId);
-        effect.update({
-            alpha: isCurrentTurn ? 1.0 : 0.3
-        });
+        effect.update({ alpha: isCurrentTurn ? 1.0 : 0.3 });
     });
-});
-
-/**
- * Automatisches Entfernen beim Löschen von Items/Effekten
- */
-Hooks.on("deleteItem", (item) => {
-    const token = item.parent?.getActiveTokens()[0];
-    if (token) Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${item.slug}` });
 });
 
 const findInIndex = (key) => {
     if (!key) return null;
     const s = key.toLowerCase();
     if (ANIM_INDEX[s]) return ANIM_INDEX[s];
-    const fuzzyKey = Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3);
-    return fuzzyKey ? ANIM_INDEX[fuzzyKey] : null;
+    return Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3) ? ANIM_INDEX[Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3)] : null;
 };
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
@@ -135,47 +184,29 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     const itemSlug = item.slug || "";
     const isKnownProj = PROJECTILES.some(p => itemSlug.includes(p));
-    const isDamage = (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isKnownProj;
-    if (isDamage) return;
+    if ((message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isKnownProj) return;
 
     let animKey = findInIndex(itemSlug) || findInIndex(item.name);
     if (!animKey) return;
+
+    const isPersistent = PERSISTENT_TAGS.some(tag => itemSlug.includes(tag));
+    if (isPersistent) return; // createItem übernimmt hier
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");
     const isSelf = !isKnownProj && (SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell"));
     const isBurst = BURSTS.some(b => itemSlug.includes(b));
-    const isPersistent = PERSISTENT_TAGS.some(tag => itemSlug.includes(tag));
-
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
     let seq = new Sequence();
-
-    if (isPersistent) {
-        const radius = item.system.area?.value || 5;
-        const scale = (radius * 4) / 5;
-        const isCurrent = game.combat?.combatant?.tokenId === sourceToken.id;
-
-        seq.effect()
-            .file(animKey)
-            .attachTo(sourceToken)
-            .scaleToObject(scale)
-            .persist()
-            .origin("PF2e-Anim-Framework")
-            .name(`Persist-${sourceToken.id}-${itemSlug}`)
-            .fadeIn(1000)
-            .opacity(isCurrent ? 1.0 : 0.3)
-            .loopProperty("sprite", "alpha", { from: 0.1, to: 0.4, duration: 3000, pingpong: true });
-    } else {
-        finalTargets.forEach(t => {
-            let effect = seq.effect().file(animKey);
-            if (isSelf || isBurst) {
-                effect.atLocation(t).scaleToObject(1.5).fadeIn(400).fadeOut(400);
-            } else {
-                effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
-                if (isCrit) effect.scale(1.5);
-            }
-        });
-    }
+    finalTargets.forEach(t => {
+        let effect = seq.effect().file(animKey);
+        if (isSelf || isBurst) {
+            effect.atLocation(t).scaleToObject(1.5).fadeIn(400).fadeOut(400);
+        } else {
+            effect.atLocation(sourceToken).stretchTo(t).playbackRate(1.2);
+            if (isCrit) effect.scale(1.5);
+        }
+    });
     seq.play();
 });
