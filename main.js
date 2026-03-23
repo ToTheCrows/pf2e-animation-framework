@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.9.6 - "The Absolute Calibration"
- * Master Grimoire: Dynamic Radius Detection (Aura Rules), Updated Condition Slugs.
+ * Version 1.9.7 - "The Nullification Prism"
+ * Master Grimoire: Strict Number Casting for Scale, Radius Sanitation.
  */
 
 const ANIMATIONS = {
@@ -101,14 +101,15 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.9.6: ${Object.keys(ANIM_INDEX).length} Slugs verifiziert.`);
+    console.log(`PF2e Animation Framework | v1.9.7: Index bereit.`);
 });
 
 /**
  * Helfer: Spielt persistente Animationen ab
  */
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
-    const scale = (radiusValue * 4) / 5;
+    const safeRadius = Number(radiusValue) || 5;
+    const scale = (safeRadius * 4) / 5;
     const isCurrent = game.combat?.combatant?.tokenId === token.id;
 
     new Sequence()
@@ -126,7 +127,7 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
 }
 
 /**
- * Hook für manuelle Condition/Effekt-Anwendung mit Radius-Erkennung
+ * Hook für manuelle Condition/Effekt-Anwendung
  */
 Hooks.on("createItem", (item, options, userId) => {
     if (game.user.id !== userId) return;
@@ -137,11 +138,10 @@ Hooks.on("createItem", (item, options, userId) => {
     const animKey = findInIndex(itemSlug);
     if (!animKey || !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
-    // Radius-Erkennung: Bevorzugt Aura-Regeln, dann Area-Werte
     let radius = 5;
     if (item.system.rules) {
         const auraRule = item.system.rules.find(r => r.key === "Aura");
-        if (auraRule) radius = auraRule.radius;
+        if (auraRule && auraRule.radius) radius = auraRule.radius;
     } else if (item.system.area?.value) {
         radius = item.system.area.value;
     }
@@ -198,7 +198,7 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     if (!animKey) return;
 
     const isPersistent = PERSISTENT_TAGS.some(tag => itemSlug.includes(tag));
-    if (isPersistent) return; // createItem übernimmt hier
+    if (isPersistent) return;
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");
