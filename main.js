@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 2.0.2 - "The Radiant Orbit"
- * Master Grimoire: Enhanced Visibility, Orbital Offsets, V13 Namespacing.
+ * Version 2.0.3 - "The Core Focus"
+ * Master Grimoire: Centered Animations, V13 Clean Hooks, Performance Throttling.
  */
 
 const ANIMATIONS = {
@@ -103,43 +103,30 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.0.2: Radiant Orbit aktiv.`);
+    console.log(`PF2e Animation Framework | v2.0.3: Core Focus aktiv.`);
 });
 
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
     Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
 
     const safeRadius = Number(radiusValue) || 5;
-    let scale = (safeRadius * 4) / 5;
-    let offset = { x: 0, y: 0 };
+    const scale = (safeRadius * 4) / 5;
 
-    if (safeRadius <= 5) {
-        if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
-        const activeSlugs = FRAMEWORK_REGISTRY.get(token.id);
-
-        const index = activeSlugs.size;
-        const angle = index * 45;
-        const dist = 45;
-
-        offset.x = Math.cos(angle * Math.PI / 180) * dist;
-        offset.y = Math.sin(angle * Math.PI / 180) * dist;
-        scale = 0.7; // Radiant Orbit: Vergrößert
-        activeSlugs.add(itemSlug);
-    }
+    if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
+    FRAMEWORK_REGISTRY.get(token.id).add(itemSlug);
 
     const isCurrent = game.combat?.combatant?.tokenId === token.id;
 
     new Sequence()
         .effect()
         .file(animKey)
-        .atLocation(token, { offset: offset, local: true })
         .attachTo(token)
-        .scaleToObject(scale)
+        .scaleToObject(safeRadius <= 5 ? 1.5 : scale) // Conditions gut sichtbar, Auren nach Radius
         .persist()
         .origin("PF2e-Anim-Framework")
         .name(`Persist-${token.id}-${itemSlug}`)
         .fadeIn(1000)
-        .opacity(isCurrent ? 1.0 : 0.4) // Passive Opacity erhöht
+        .opacity(isCurrent ? 1.0 : 0.4)
         .loopProperty("sprite", "alpha", { from: 0.2, to: 0.5, duration: 3000, pingpong: true })
         .play();
 }
@@ -200,6 +187,11 @@ const findInIndex = (key) => {
     const fuzzyKey = Object.keys(ANIM_INDEX).find(k => s.includes(k) && k.length > 3);
     return fuzzyKey ? ANIM_INDEX[fuzzyKey] : null;
 };
+
+// V13 Namespacing Fix für renderChatMessageHTML
+Hooks.on("renderChatMessageHTML", (message, html) => {
+    // Hier können zukünftige UI-Elemente für den Chat eingefügt werden
+});
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
