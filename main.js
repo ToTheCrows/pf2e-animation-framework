@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 1.8.8 - "The Architect's Redemption"
- * Master Grimoire: Sanitized JB2A Paths, Optimized Ranged & Aura Logic.
+ * Version 1.9.3 - "The Watcher's Pulse"
+ * Master Grimoire: Turn-Based Opacity, Unified Persistence, Auto-Cleanup.
  */
 
 const ANIMATIONS = {
@@ -64,14 +64,24 @@ const ANIMATIONS = {
             "resilient-sphere": "jb2a.wall_of_force.sphere.blue", "wall-of-fire": "jb2a.wall_of_fire.100x100.yellow"
         }
     },
-    conditions: { "frightened": "jb2a.condition.curse.01.006.purple", "prone": "jb2a.condition.curse.01.013.red" }
+    conditions: {
+        "frightened": "jb2a.condition.curse.01.006.purple",
+        "prone": "jb2a.condition.curse.01.013.red",
+        "stunned": "jb2a.markers.stun.purple.02",
+        "blinded": "jb2a.markers.blind.black.01",
+        "confused": "jb2a.markers.confusion.purple.01",
+        "immobilized": "jb2a.markers.chain.standard.white.01",
+        "paralyzed": "jb2a.markers.lightning.blue.01",
+        "quickened": "jb2a.condition.boon.01.015.yellow",
+        "sickened": "jb2a.condition.curse.01.007.green"
+    }
 };
 
 let ANIM_INDEX = {};
 const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
 const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
 const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden"];
-const AURAS = ["bless", "bane", "courageous-anthem", "inspire-courage", "dread-aura"];
+const PERSISTENT_TAGS = ["bless", "bane", "aura", "frightened", "prone", "stunned", "blinded", "confused", "immobilized", "paralyzed", "quickened", "sickened", "heroism"];
 
 Hooks.once('ready', () => {
     Object.values(ANIMATIONS).forEach(category => {
@@ -80,7 +90,30 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v1.8.8: ${Object.keys(ANIM_INDEX).length} Slugs im Index. Pfade verifiziert.`);
+    console.log(`PF2e Animation Framework | v1.9.3: ${Object.keys(ANIM_INDEX).length} Slugs im Index. Resonanz stabilisiert.`);
+});
+
+/**
+ * Turn-Manager: Regelt die Sichtbarkeit von persistenten Effekten
+ */
+Hooks.on("updateCombat", (combat) => {
+    const currentTokenId = combat.combatant?.tokenId;
+    if (!currentTokenId) return;
+
+    Sequencer.EffectManager.getEffects({ origin: "PF2e-Anim-Framework" }).forEach(effect => {
+        const isCurrentTurn = effect.data.name.includes(currentTokenId);
+        effect.update({
+            alpha: isCurrentTurn ? 1.0 : 0.3
+        });
+    });
+});
+
+/**
+ * Automatisches Entfernen beim Löschen von Items/Effekten
+ */
+Hooks.on("deleteItem", (item) => {
+    const token = item.parent?.getActiveTokens()[0];
+    if (token) Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${item.slug}` });
 });
 
 const findInIndex = (key) => {
@@ -112,20 +145,27 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");
     const isSelf = !isKnownProj && (SELF_EFFECTS.some(se => itemSlug.includes(se)) || (game.user.targets.size === 0 && item.type === "spell"));
     const isBurst = BURSTS.some(b => itemSlug.includes(b));
-    const isAura = AURAS.some(a => itemSlug.includes(a));
+    const isPersistent = PERSISTENT_TAGS.some(tag => itemSlug.includes(tag));
+
     const finalTargets = isSelf ? [sourceToken] : Array.from(game.user.targets);
 
     let seq = new Sequence();
 
-    if (isAura) {
+    if (isPersistent) {
+        const radius = item.system.area?.value || 5;
+        const scale = (radius * 4) / 5;
+        const isCurrent = game.combat?.combatant?.tokenId === sourceToken.id;
+
         seq.effect()
             .file(animKey)
             .attachTo(sourceToken)
-            .scaleToObject(4)
+            .scaleToObject(scale)
             .persist()
+            .origin("PF2e-Anim-Framework")
+            .name(`Persist-${sourceToken.id}-${itemSlug}`)
             .fadeIn(1000)
-            .fadeOut(1000)
-            .name(`Aura-${sourceToken.id}-${itemSlug}`);
+            .opacity(isCurrent ? 1.0 : 0.3)
+            .loopProperty("sprite", "alpha", { from: 0.1, to: 0.4, duration: 3000, pingpong: true });
     } else {
         finalTargets.forEach(t => {
             let effect = seq.effect().file(animKey);
