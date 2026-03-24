@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 2.0.5 - "The Lost Heritage"
- * Master Grimoire: Full Class Restoration, Specialist Talents, V13 Visual Order.
+ * Version 2.0.7 - "The Bard"
+ * Master Grimoire: Precise Aura Extraction, Canvas-Grid Scaling, V13 Visual Order.
  */
 
 const ANIMATIONS = {
@@ -82,6 +82,12 @@ const ANIMATIONS = {
         sorcerer: {
             "dangerous-sorcery": "jb2a.impact.01.orange", "sorcerous-potency": "jb2a.magic_signs.circle.02.evocation.intro.red",
             "ancestral-memories": "jb2a.magic_signs.circle.01.divination.intro.purple", "bloodline-focus": "jb2a.magic_signs.circle.01.necromancy.intro.red"
+        },
+        bard: {
+            "aura-inspire-courage": "jb2a.bardic_inspiration.dark_red", "spell-effect-aura-inspire-defense": "jb2a.bardic_inspiration.purplepink",
+            "song-of-marching": "jb2a.template_circle.aura.03.outward.004.complete.part02.pinkyellow", "dirge-of-doom": "jb2a.aura_themed.01.inward.loop.wood.01.purple",
+            "hymn-of-healing": "jb2a.aura_themed.01.outward.complete.cold.01.green", "uplifting-overture": "jb2a.aura_themed.01.inward.loop.nature.01.green",
+            "allegro": "jb2a.bardic_inspiration.blueyellow", "spell-effect-aura-song-of-strength": "jb2a.bardic_inspiration.greenorange"
         }
     },
     spells: {
@@ -94,7 +100,7 @@ const ANIMATIONS = {
             "hydraulic-push": "jb2a.liquid.splash.bright_blue", "pummeling-rubble": "jb2a.falling_rocks.side.1x1.grey.1",
             "snowball": "jb2a.snowball_toss.white.01", "thunderstrike": "jb2a.lightning_strike.blue.5",
             "grease": "jb2a.grease.dark_brown.loop", "sleep": "jb2a.sleep.target.dark_orangepurple",
-            "guidance": "jb2a.condition.boon.01.005.yellow", "bless": "jb2a.condition.boon.01.002.yellow", "bane": "jb2a.condition.curse.01.001.purple",
+            "guidance": "jb2a.condition.boon.01.005.yellow", "bless": "jb2a.bless.200px.intro.yellow", "bane": "jb2a.bless.200px.intro.purple",
             "ray-of-enfeeblement": "jb2a.condition.curse.01.021.red", "runic-weapon": "jb2a.condition.boon.01.010.blue"
         },
         level2: {
@@ -153,15 +159,18 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.0.5: Lost Heritage aktiv.`);
+    console.log(`PF2e Animation Framework | v2.0.6: Radiant Boundary aktiv.`);
 });
 
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 0, isAura = false) {
     Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
 
+    const gridDist = canvas.scene.grid.distance || 5;
     const safeRadius = Number(radiusValue) || 0;
-    const tokenWidth = token.document.width * 5;
-    const auraScale = ((safeRadius * 2) + tokenWidth) / tokenWidth;
+    const tokenWidthFt = token.document.width * gridDist;
+
+    // Berechnung des Scale-Faktors relativ zur Token-Größe
+    const auraScale = isAura ? ((safeRadius * 2) + tokenWidthFt) / tokenWidthFt : 1.2;
 
     const stackCount = FRAMEWORK_REGISTRY.get(token.id)?.size || 0;
     const verticalOffset = isAura ? 0 : (stackCount * -25);
@@ -175,7 +184,7 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 0, isAu
         .effect()
         .file(animKey)
         .attachTo(token)
-        .scaleToObject(isAura ? auraScale : 1.2)
+        .scaleToObject(auraScale)
         .spriteOffset({ y: verticalOffset })
         .persist()
         .origin("PF2e-Anim-Framework")
@@ -195,13 +204,16 @@ Hooks.on("createItem", (item, options, userId) => {
     const animKey = findInIndex(itemSlug);
     if (!animKey || !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
-    let radius = 0;
-    let isAura = false;
-    if (item.system.rules) {
-        const auraRule = item.system.rules.find(r => r.key === "Aura" || (r.selector && r.selector.includes("aura")));
-        if (auraRule) { radius = auraRule.radius; isAura = true; }
-    }
-    if (item.system.area?.value) { radius = item.system.area.value; isAura = true; }
+    // Tiefe Extraktion des Radius aus Rule Elements oder Area-Daten
+    let radius = item.system.rules?.find(r => r.key === "Aura")?.radius
+        || item.system.area?.value
+        || item.flags.pf2e?.rulesArea?.radius
+        || 0;
+
+    const isAura = radius > 0 || item.system.traits?.value?.includes("aura") || item.name.toLowerCase().includes("aura");
+
+    // Fallback: Wenn es eine Aura ist, aber kein Radius gefunden wurde (z.B. 5ft Standard)
+    if (isAura && radius === 0) radius = 5;
 
     playPersistentAnimation(token, animKey, itemSlug, radius, isAura);
 });
