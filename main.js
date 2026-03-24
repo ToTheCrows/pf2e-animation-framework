@@ -1,29 +1,39 @@
 /**
- * PF2e Animation Framework - Version 2.2.0
- * Core Engine & Entry Point
+ * PF2e Animation Framework - Version 2.3.0
+ * Core Engine: Centered Focus, Condition Escalation & Damage Impacts.
  */
 
 import { ANIMATIONS } from './scripts/animation-map.js';
 import { BOMB_DATA } from './scripts/bomb-data.js';
 import { COMPLEX_ANIMATIONS } from './scripts/complex-logic.js';
-import { SELF_EFFECTS, PROJECTILES, BURSTS, PERSISTENT_TAGS } from './scripts/constants.js';
+import { SELF_EFFECTS, PROJECTILES, BURSTS, PERSISTENT_TAGS, CONDITION_CHAINS, DAMAGE_IMPACTS } from './scripts/constants.js';
 
 const FRAMEWORK_REGISTRY = new Map();
 let ANIM_INDEX = {};
 
 Hooks.once('ready', () => {
-    // Index aus allen Kategorien aufbauen
     Object.values(ANIMATIONS).forEach(category => {
         Object.entries(category).forEach(([key, value]) => {
             if (typeof value === 'string') ANIM_INDEX[key] = value;
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.2.0: Engine geladen. ${Object.keys(ANIM_INDEX).length} Mappings aktiv.`);
+    console.log(`PF2e Animation Framework | v2.3.0: Engine geladen. Impact-System bereit.`);
 });
 
 function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 0, isAura = false) {
     Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
+
+    // Eskalations-Logik für Conditions
+    const chain = CONDITION_CHAINS.find(c => c.includes(itemSlug));
+    if (chain) {
+        chain.forEach(otherSlug => {
+            if (otherSlug !== itemSlug) {
+                Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${otherSlug}` });
+                FRAMEWORK_REGISTRY.get(token.id)?.delete(otherSlug);
+            }
+        });
+    }
 
     if (COMPLEX_ANIMATIONS[itemSlug]) {
         if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
@@ -40,17 +50,14 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 0, isAu
     const tokenWidthFt = token.document.width * gridDist;
     const auraScale = isAura ? ((safeRadius * 2) + tokenWidthFt) / tokenWidthFt : 1.2;
 
-    const stackCount = FRAMEWORK_REGISTRY.get(token.id)?.size || 0;
-    const verticalOffset = isAura ? 0 : (stackCount * -25);
-
     if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
     FRAMEWORK_REGISTRY.get(token.id).add(itemSlug);
 
     const isCurrent = game.combat?.combatant?.tokenId === token.id;
 
     new Sequence()
-        .effect().file(animKey).attachTo(token).scaleToObject(auraScale).spriteOffset({ y: verticalOffset })
-        .persist().origin("PF2e-Anim-Framework").name(`Persist-${token.id}-${itemSlug}`)
+        .effect().file(animKey).attachTo(token).scaleToObject(auraScale).persist()
+        .origin("PF2e-Anim-Framework").name(`Persist-${token.id}-${itemSlug}`)
         .fadeIn(1000).opacity(isCurrent ? 1.0 : 0.4)
         .loopProperty("sprite", "alpha", { from: 0.2, to: 0.5, duration: 3000, pingpong: true }).play();
 }
@@ -61,10 +68,8 @@ Hooks.on("createItem", (item, options, userId) => {
     if (!token) return;
     const itemSlug = item.slug || "";
     const animKey = findInIndex(itemSlug);
-
     if (!animKey && !COMPLEX_ANIMATIONS[itemSlug]) return;
     if (animKey && !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
-
     let radius = item.system.rules?.find(r => r.key === "Aura")?.radius || item.system.area?.value || item.flags.pf2e?.rulesArea?.radius || 0;
     const isAura = radius > 0 || item.system.traits?.value?.includes("aura") || item.name.toLowerCase().includes("aura");
     if (isAura && radius === 0) radius = 5;
@@ -109,6 +114,20 @@ const findInIndex = (key) => {
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
     if (game.user.id !== userId) return;
+
+    // --- DAMAGE IMPACT LOGIK ---
+    if (message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") {
+        const damageType = message.rolls[0]?.instances[0]?.type || "slashing";
+        const impact = DAMAGE_IMPACTS[damageType] || DAMAGE_IMPACTS["default"];
+
+        game.user.targets.forEach(target => {
+            new Sequence({ moduleName: "PF2e Animation Framework" })
+                .effect().file(impact.file).atLocation(target).scaleToObject(impact.scale)
+                .belowTokens(impact.below || false).fadeIn(200).fadeOut(500).duration(1200).play();
+        });
+        return;
+    }
+
     const sourceToken = canvas.tokens.get(message.speaker.token) || canvas.tokens.placeables.find(t => t.actor?.id === message.speaker.actor);
     if (!sourceToken) return;
     let item = message.item || (message.flags.pf2e?.origin?.uuid ? await fromUuid(message.flags.pf2e.origin.uuid) : null);
@@ -117,9 +136,8 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
 
     if (BOMB_DATA[itemSlug]) {
         const target = Array.from(game.user.targets)[0] || sourceToken;
-        const radius = item.system.rules?.find(r => r.key === "RollOption" && r.option?.includes("splash")) ? 10 : 5;
         let seq = new Sequence({ moduleName: "PF2e Animation Framework" });
-        COMPLEX_ANIMATIONS["bomb-logic"](seq, sourceToken, target, BOMB_DATA[itemSlug], radius);
+        COMPLEX_ANIMATIONS["bomb-logic"](seq, sourceToken, target, BOMB_DATA[itemSlug], 5);
         seq.play();
         return;
     }
@@ -133,10 +151,8 @@ Hooks.on("createChatMessage", async (message, options, userId) => {
     }
 
     const isKnownProj = PROJECTILES.some(p => itemSlug.includes(p));
-    if ((message.isDamageRoll || message.flags.pf2e?.context?.type === "damage-roll") && !isKnownProj) return;
     let animKey = findInIndex(itemSlug) || findInIndex(item.name);
-    if (!animKey) return;
-    if (PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
+    if (!animKey || PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
     const flavor = (message.flavor || "").toLowerCase();
     const isCrit = flavor.includes("critical") || flavor.includes("kritisch");

@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "Version 2.2.0 - The Library of Stygia. Modularer Engine/Library Split für maximale Skalierbarkeit.",
-  "version": "2.2.0",
+  "description": "Version 2.3.0 - The Impact Update. Dynamisches Treffer-Feedback, Eskalations-Logik und modularer Engine-Split.",
+  "version": "2.3.0",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v2.2.0/module.zip",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v2.3.0/module.zip",
   "authors": [{ "name": "ToTheCrows" }],
   "relationships": {
     "requires": [
