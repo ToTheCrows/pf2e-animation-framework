@@ -1,11 +1,11 @@
 {
   "id": "pf2e-animation-framework",
   "title": "PF2e Animation Framework",
-  "description": "Version 2.0.7 - The Bard: Bardic Cantrips and more added with the right logic.",
-  "version": "2.0.7",
+  "description": "Version 2.2.0 - The Library of Stygia. Modularer Engine/Library Split für maximale Skalierbarkeit.",
+  "version": "2.2.0",
   "library": "false",
   "manifest": "https://raw.githubusercontent.com/ToTheCrows/pf2e-animation-framework/main/module.json",
-  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v2.0.7/module.zip",
+  "download": "https://github.com/ToTheCrows/pf2e-animation-framework/releases/download/v2.2.0/module.zip",
   "authors": [{ "name": "ToTheCrows" }],
   "relationships": {
     "requires": [
@@ -13,6 +13,6 @@
       { "id": "jb2a_patreon", "type": "module" }
     ]
   },
-  "scripts": ["main.js"],
+  "esmodules": ["main.js"],
   "compatibility": { "minimum": "12", "verified": "13" }
 }
