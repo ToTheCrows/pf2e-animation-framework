@@ -1,7 +1,7 @@
 /**
  * PF2e Animation Framework
- * Version 2.0.3 - "The Core Focus"
- * Master Grimoire: Centered Animations, V13 Clean Hooks, Performance Throttling.
+ * Version 2.0.5 - "The Lost Heritage"
+ * Master Grimoire: Full Class Restoration, Specialist Talents, V13 Visual Order.
  */
 
 const ANIMATIONS = {
@@ -30,9 +30,59 @@ const ANIMATIONS = {
         "arquebus": "jb2a.bullet.02.orange"
     },
     classes: {
-        fighter: { "power-attack": "jb2a.impact.010.orange", "shield-bash": "jb2a.impact.007.white", "reactive-strike": "jb2a.melee_generic.slashing.two_handed" },
-        cleric: { "raise-a-shield": "jb2a.markers.shield.blue.02", "divine-font": "jb2a.healing_generic.burst.yellowwhite" },
-        barbarian: { "rage": "jb2a.ground_cracks.02.orange" }
+        fighter: {
+            "power-attack": "jb2a.impact.010.orange", "shield-bash": "jb2a.impact.007.white",
+            "reactive-strike": "jb2a.melee_generic.slashing.two_handed", "knockdown": "jb2a.impact.01.yellow",
+            "vicious-swing": "jb2a.impact.01.yellow", "combat-grab": "jb2a.impact.01.white"
+        },
+        monk: {
+            "flurry-of-blows": "jb2a.unarmed_strike.physical", "ki-strike": "jb2a.impact.01.blue",
+            "stunning-fist": "jb2a.magic_signs.circle.01.enchantment.intro.yellow",
+            "mountain-stance": "jb2a.magic_signs.circle.01.abjuration.intro.yellow",
+            "crane-stance": "jb2a.magic_signs.circle.01.divination.intro.white",
+            "ki-blast": "jb2a.shatter.01.blue", "whirling-throw": "jb2a.wind_directional.white"
+        },
+        barbarian: {
+            "rage": "jb2a.ground_cracks.02.orange", "sudden-charge": "jb2a.impact.01.yellow",
+            "terrifying-howl": "jb2a.shatter.01.red", "thrash": "jb2a.melee_generic.bludgeoning.two_handed",
+            "animal-rage": "jb2a.claws.01.white", "cleave": "jb2a.melee_generic.slashing.two_handed"
+        },
+        ranger: {
+            "hunt-prey": "jb2a.magic_signs.circle.02.divination.intro.green", "gravity-weapon": "jb2a.gravity_fissure.01.purple",
+            "hunted-shot": "jb2a.arrow.physical.white", "twin-takedown": "jb2a.melee_generic.slashing",
+            "heal-companion": "jb2a.healing_generic.burst.green", "soothing-mist": "jb2a.fog_cloud.01.white"
+        },
+        rogue: {
+            "debilitating-strike": "jb2a.curse.02.dark_green", "mobility": "jb2a.misty_step.01.blue",
+            "surprise-attack": "jb2a.misty_step.01.blue", "quick-draw": "jb2a.melee_generic.piercing.one_handed"
+        },
+        cleric: {
+            "raise-a-shield": "jb2a.markers.shield.blue.02", "divine-font": "jb2a.healing_generic.burst.yellowwhite",
+            "emblazon-armament": "jb2a.magic_signs.circle.01.abjuration.intro.yellow", "holy-blast": "jb2a.shatter.01.yellow"
+        },
+        investigator: {
+            "devise-a-stratagem": "jb2a.magic_signs.circle.02.divination.intro.blue",
+            "known-weakness": "jb2a.magic_signs.circle.01.divination.intro.white",
+            "suspect-of-opportunity": "jb2a.magic_signs.circle.01.divination.intro.blue",
+            "clues": "jb2a.magic_signs.circle.01.divination.intro.yellow"
+        },
+        gunslinger: {
+            "firearm-strike": "jb2a.bullet.01.orange", "reload": "jb2a.fumes.steam.white",
+            "slingers-reload": "jb2a.fumes.steam.white", "gunslingers-dodge": "jb2a.misty_step.01.blue",
+            "risky-reload": "jb2a.fumes.steam.white", "ten-paces": "jb2a.impact.01.orange"
+        },
+        druid: {
+            "wild-shape": "jb2a.magic_signs.circle.01.transmutation.intro.green", "untamed-form": "jb2a.magic_signs.circle.01.transmutation.intro.green",
+            "goodberry": "jb2a.healing_generic.200px.green"
+        },
+        mage: {
+            "arcane-cascade": "jb2a.magic_signs.circle.02.abjuration.intro.blue", "counterspell": "jb2a.magic_signs.circle.01.abjuration.intro.red",
+            "drain-bond": "jb2a.magic_signs.circle.01.divination.intro.blue", "hand-of-the-apprentice": "jb2a.spiritual_weapon.sword.blue"
+        },
+        sorcerer: {
+            "dangerous-sorcery": "jb2a.impact.01.orange", "sorcerous-potency": "jb2a.magic_signs.circle.02.evocation.intro.red",
+            "ancestral-memories": "jb2a.magic_signs.circle.01.divination.intro.purple", "bloodline-focus": "jb2a.magic_signs.circle.01.necromancy.intro.red"
+        }
     },
     spells: {
         level1: {
@@ -91,9 +141,9 @@ const ANIMATIONS = {
 const FRAMEWORK_REGISTRY = new Map();
 let ANIM_INDEX = {};
 
-const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism"];
-const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement"];
-const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden"];
+const SELF_EFFECTS = ["shield", "raise-a-shield", "rage", "hunt-prey", "wild-shape", "haste", "blur", "invisibility", "mirror-image", "fleet-step", "mystic-armor", "enlarge", "disguise", "resist-energy", "fire-shield", "freedom-of-movement", "air-walk", "guidance", "heroism", "arcane-cascade", "ancestral-memories"];
+const PROJECTILES = ["force-barrage", "magic-missile", "kraftgeschoss", "admonishing-ray", "briny-bolt", "hydraulic-push", "snowball", "thunderstrike", "blazing-bolt", "sudden-bolt", "fireball", "lightning-bolt", "acid-arrow", "chakram", "enervation", "longbow", "shortbow", "crossbow", "bolt", "pistol", "musket", "arquebus", "bullet", "ray-of-enfeeblement", "hand-of-the-apprentice"];
+const BURSTS = ["heal", "healing", "shatter", "acidic-burst", "breathe-fire", "grim-tendrils", "pummeling-rubble", "acid-grip", "animated-assault", "boneshaker", "ignite-fireworks", "mist", "noise-blast", "vomit-swarm", "web", "crashing-wave", "hypnotize", "rouse-skeletons", "agonizing-despair", "vampiric-feast", "gravity-well", "stinking-cloud", "fear", "sleep", "confusion", "vital-beacon", "phantasmal-killer", "vampiric-maiden", "holy-blast"];
 const PERSISTENT_TAGS = ["bless", "bane", "aura", "frightened", "prone", "stunned", "blinded", "confused", "immobilized", "paralyzed", "quickened", "sickened", "heroism", "clumsy", "doomed", "drained", "dying", "enfeebled", "fleeing", "grabbed", "restrained", "slowed", "stupefied", "unconscious", "invisible", "hidden", "off-guard", "flat-foot"];
 
 Hooks.once('ready', () => {
@@ -103,14 +153,18 @@ Hooks.once('ready', () => {
             else Object.entries(value).forEach(([subKey, subVal]) => { ANIM_INDEX[subKey] = subVal; });
         });
     });
-    console.log(`PF2e Animation Framework | v2.0.3: Core Focus aktiv.`);
+    console.log(`PF2e Animation Framework | v2.0.5: Lost Heritage aktiv.`);
 });
 
-function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
+function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 0, isAura = false) {
     Sequencer.EffectManager.endEffects({ name: `Persist-${token.id}-${itemSlug}` });
 
-    const safeRadius = Number(radiusValue) || 5;
-    const scale = (safeRadius * 4) / 5;
+    const safeRadius = Number(radiusValue) || 0;
+    const tokenWidth = token.document.width * 5;
+    const auraScale = ((safeRadius * 2) + tokenWidth) / tokenWidth;
+
+    const stackCount = FRAMEWORK_REGISTRY.get(token.id)?.size || 0;
+    const verticalOffset = isAura ? 0 : (stackCount * -25);
 
     if (!FRAMEWORK_REGISTRY.has(token.id)) FRAMEWORK_REGISTRY.set(token.id, new Set());
     FRAMEWORK_REGISTRY.get(token.id).add(itemSlug);
@@ -121,7 +175,8 @@ function playPersistentAnimation(token, animKey, itemSlug, radiusValue = 5) {
         .effect()
         .file(animKey)
         .attachTo(token)
-        .scaleToObject(safeRadius <= 5 ? 1.5 : scale) // Conditions gut sichtbar, Auren nach Radius
+        .scaleToObject(isAura ? auraScale : 1.2)
+        .spriteOffset({ y: verticalOffset })
         .persist()
         .origin("PF2e-Anim-Framework")
         .name(`Persist-${token.id}-${itemSlug}`)
@@ -140,14 +195,15 @@ Hooks.on("createItem", (item, options, userId) => {
     const animKey = findInIndex(itemSlug);
     if (!animKey || !PERSISTENT_TAGS.some(tag => itemSlug.includes(tag))) return;
 
-    let radius = 5;
+    let radius = 0;
+    let isAura = false;
     if (item.system.rules) {
         const auraRule = item.system.rules.find(r => r.key === "Aura" || (r.selector && r.selector.includes("aura")));
-        radius = auraRule?.radius || radius;
+        if (auraRule) { radius = auraRule.radius; isAura = true; }
     }
-    radius = item.system.area?.value || radius;
+    if (item.system.area?.value) { radius = item.system.area.value; isAura = true; }
 
-    playPersistentAnimation(token, animKey, itemSlug, radius);
+    playPersistentAnimation(token, animKey, itemSlug, radius, isAura);
 });
 
 Hooks.on("deleteItem", (item, options, userId) => {
@@ -188,9 +244,8 @@ const findInIndex = (key) => {
     return fuzzyKey ? ANIM_INDEX[fuzzyKey] : null;
 };
 
-// V13 Namespacing Fix für renderChatMessageHTML
 Hooks.on("renderChatMessageHTML", (message, html) => {
-    // Hier können zukünftige UI-Elemente für den Chat eingefügt werden
+    // UI-Elemente Platzhalter
 });
 
 Hooks.on("createChatMessage", async (message, options, userId) => {
