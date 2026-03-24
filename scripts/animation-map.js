@@ -117,8 +117,49 @@ export const ANIMATIONS = {
             "magic-missile": "jb2a.magic_missile.purple",
             "heal": "jb2a.healing_generic.burst.bluewhite",
             "shield": "jb2a.markers.shield.blue.02",
+            "acidic-burst": "jb2a.liquid.splash.bright_green",
+            "admonishing-ray": "jb2a.scorching_ray.01.rainbow01",
+            "breathe-fire": "jb2a.burning_hands.01.orange",
+            "briny-bolt": "jb2a.bolt.cold.blue",
+            "fear": "jb2a.condition.curse.01.006.green",
+            "grim-tendrils": "jb2a.arms_of_hadar.dark_purple",
+            "hydraulic-push": "jb2a.liquid.splash.bright_blue",
+            "pummeling-rubble": "jb2a.falling_rocks.side.1x1.grey.1",
+            "snowball": "jb2a.snowball_toss.white.01",
+            "thunderstrike": "jb2a.lightning_strike.blue.5",
+            "grease": "jb2a.grease.dark_brown.loop",
+            "sleep": "jb2a.sleep.target.dark_orangepurple",
+            "guidance": "jb2a.condition.boon.01.005.yellow",
             "bless": "jb2a.bless.200px.intro.yellow",
-            "bane": "jb2a.bless.200px.intro.purple"
+            "bane": "jb2a.bless.200px.intro.purple",
+            "ray-of-enfeeblement": "jb2a.condition.curse.01.021.red",
+            "runic-weapon": "jb2a.condition.boon.01.010.blue"
+        },
+        level2: {
+            "flaming-sphere": "jb2a.flaming_sphere.200px.orange.02",
+            "shatter": "jb2a.shatter.dark_red",
+            "acid-grip": "jb2a.liquid.splash02.green",
+            "animated-assault": "jb2a.shatter.purple",
+            "blazing-bolt": "jb2a.fire_bolt.orange",
+            "blur": "jb2a.ambient_fog.001.complete.small.blueteal",
+            "boneshaker": "jb2a.impact.002.dark_purple",
+            "enlarge": "jb2a.magic_signs.circle.02.transmutation.intro.yellow",
+            "ignite-fireworks": "jb2a.firework.01.orangeyellow.03",
+            "invisibility": "jb2a.fog_cloud.02.white"
+        },
+        level3: {
+            "fireball": "jb2a.fireball.01.orange",
+            "lightning-bolt": "jb2a.lightning_bolt.wide.blue",
+            "haste": "jb2a.condition.boon.01.015.yellow",
+            "slow": "jb2a.condition.curse.01.003.purple",
+            "heroism": "jb2a.condition.boon.01.004.blue",
+            "crashing-wave": "jb2a.water_splash.circle.01.blue"
+        },
+        level4: {
+            "phantasmal-killer": "jb2a.ambient_fog.001.loop.large.purplered",
+            "fire-shield": "jb2a.shield_themed.above.fire.03.orange",
+            "resilient-sphere": "jb2a.wall_of_force.sphere.blue",
+            "wall-of-fire": "jb2a.wall_of_fire.100x100.yellow"
         }
     },
     conditions: {
